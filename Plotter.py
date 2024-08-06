@@ -10,13 +10,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
-from single_transistor_model.Impedancefunction import Z
+from nanoparticles_model.Impedancefunction import Z
 
 #get phase of complex number
 def arg(z):
     return np.arctan2(z.imag, z.real)
 
-df = pd.read_csv("single_transistor_model\Initial_params.csv", delimiter=",")
+df = pd.read_csv("nanoparticles_model\Initial_params.csv", delimiter=",")
 init_params = df.values
 
 #initialising values and figures
@@ -45,6 +45,19 @@ axes_pos = [[0.10, 0.15, 0.2, 0.03],
             [0.7, 0.15, 0.2, 0.03],
             [0.7, 0.1, 0.2, 0.03],
             [0.7, 0.05, 0.2, 0.03]]
+
+axes_pos = [[0.10, 0.15, 0.1, 0.03],
+            [0.10, 0.1, 0.1, 0.03],
+            [0.10, 0.05, 0.1, 0.03],
+            [0.3, 0.15, 0.1, 0.03],
+            [0.3, 0.1, 0.1, 0.03],
+            [0.3, 0.05, 0.1, 0.03],
+            [0.5, 0.15, 0.1, 0.03],
+            [0.5, 0.1, 0.1, 0.03],
+            [0.5, 0.05, 0.1, 0.03],
+            [0.7, 0.15, 0.1, 0.03],
+            [0.7, 0.1, 0.1, 0.03],
+            [0.7, 0.05, 0.1, 0.03]]
 
 #generate sliders
 sliders = [] #array of slider objects

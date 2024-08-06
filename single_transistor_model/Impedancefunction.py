@@ -1,6 +1,5 @@
 """
-This file contains the function for a simple 1 transistor model impedance
-spectra for a perovskite solar cell
+Function for simple 1 transistor model impedance spectra for a perovskite solar cell
 
 Timothy Chew
 6/8/2024
