@@ -1,0 +1,11 @@
+parameter name,value,slider,log
+C_A_ratio_0,4.2,True,False
+C_g_0,1.14e-7,True,True
+C_ion_0,0.00543,True,True
+R_ion_0,8925,True,True
+kbt,4.1302114835e-21,False,False
+n_0,1,False,False
+Js_AB_0,2.31e-16,True,True
+V_0,1.023,True,False
+R_s_0,13.4,True,False
+R_sh_0,1e4,True,True
