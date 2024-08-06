@@ -32,6 +32,9 @@ line1, = ax1.plot(Z(w, *init_values).real,
 line2, = ax2.plot(w, abs(Z(w, *init_values)), label="model |Z|", color="blue")
 line3, = twin.plot(w, arg(Z(w, *init_values)), label="model arg(Z)", color="red")
 
+#adjust position of figure
+fig.subplots_adjust(bottom=0.25)
+
 #list of axes positions
 axes_pos = [[0.10, 0.15, 0.2, 0.03],
             [0.10, 0.1, 0.2, 0.03],
@@ -45,17 +48,38 @@ axes_pos = [[0.10, 0.15, 0.2, 0.03],
 
 #generate sliders
 sliders = [] #array of slider objects
-i = 0
+i = 0 #index for axes positions
 
 for j in range(len(init_params)):
+    #check if we want a slider for this value
     if init_params[j,2]:
         slider_axis = fig.add_axes(axes_pos[i])
-        valinit = init_values[i]
-        sliders.append(Slider(ax=slider_axis, label=init_params[i,0], valmin=valinit/10, valmax=valinit*10, valinit=valinit))
-        i += 1        
+        valinit = init_values[j]
+        sliders.append(Slider(ax=slider_axis, label=init_params[j,0], valmin=valinit/10, valmax=valinit*10, valinit=valinit))
+        i += 1 
+    else:
+        #append value if not placing a slider
+        sliders.append(init_values[j])
 
-#adjust position of figure
-fig.subplots_adjust(bottom=0.25)
+#update using sliders
+def update(val):
+    param_list_updated = []
+    for slider in sliders:
+        if isinstance(slider, float):
+            param_list_updated.append(slider)
+        else:
+            param_list_updated.append(slider.val)
+
+    line1.set_xdata(Z(w, *param_list_updated).real)
+    line1.set_ydata(-1*Z(w, *param_list_updated).imag)
+    line2.set_ydata(abs(Z(w, *param_list_updated)))
+    line3.set_ydata(arg(Z(w, *param_list_updated)))
+    fig.canvas.draw_idle()
+
+#call on sliders when moved
+for slider in sliders:
+    if not isinstance(slider, float):
+        slider.on_changed(update)
 
 #making graphs pretty
 fig.suptitle("Simple ionic-electronic model")
@@ -72,5 +96,4 @@ ax2.set_xlabel("w")
 
 twin.set_ylabel("Phase")
 
-print(sliders)
-#plt.show()
+plt.show()
