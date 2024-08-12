@@ -9,7 +9,7 @@ Timothy Chew
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button
+from matplotlib.widgets import Slider, Button, CheckButtons
 from nanoparticles_model.Impedancefunction import Z
 
 #get phase of complex number
@@ -31,6 +31,13 @@ line1, = ax1.plot(Z(w, *init_values).real,
 
 line2, = ax2.plot(w, abs(Z(w, *init_values)), label="model |Z|", color="blue")
 line3, = twin.plot(w, arg(Z(w, *init_values)), label="model arg(Z)", color="red")
+
+line2a, = ax2.plot(w, Z(w, *init_values).real, label="model Z'", color="green", visible=False)
+line2b, = ax2.plot(w, -1*Z(w, *init_values).imag, label = 'model -Z"', color="purple", visible=False)
+line2c, = ax2.plot(w, (1/(Z(w, *init_values)).imag * 1/w), label = "model capacitance", color="orange", visible=False)
+
+lines_by_labels = {l.get_label(): l for l in [line2, line2a,line2b,line2c]}
+line_colors = [l.get_color() for l in lines_by_labels.values()]
 
 #adjust position of figure
 fig.subplots_adjust(bottom=0.25)
@@ -91,7 +98,7 @@ for j in range(len(init_params)):
 
 
 #toggling logscale
-togglelog_ax = fig.add_axes([0.04, 0.7, 0.05, 0.02])
+togglelog_ax = fig.add_axes([0.05, 0.75, 0.04, 0.02])
 togglelog_button = Button(togglelog_ax, "Logscale", hovercolor="0.975")
 
 logscale = False #boolean logscale state
@@ -106,7 +113,8 @@ def toggle_logscale(event):
                 log_slider_axes[j].clear()
                 slider_axes[j].clear()
                 sliders[j] = Slider(ax=slider_axes[j], label=init_params[j,0], valmin=log_val/10, valmax=log_val*10, valinit=log_val)
-                log_sliders[j] = Slider(ax=log_slider_axes[j], label="log"+init_params[j,0], valmin=-16, valmax=7, valinit=np.log10(log_val))
+                log_sliders[j] = Slider(ax=log_slider_axes[j], label="log"+init_params[j,0], 
+                                        valmin=round(np.log10(log_val))-4, valmax=round(np.log10(log_val))+4, valinit=np.log10(log_val))
                 sliders[j].on_changed(update)
                 log_sliders[j].on_changed(update)
         else:
@@ -115,7 +123,8 @@ def toggle_logscale(event):
                 log_slider_axes[j].clear()
                 slider_axes[j].clear()
                 sliders[j] = Slider(ax=log_slider_axes[j], label=init_params[j,0], valmin=lin_val/10, valmax=lin_val*10, valinit=lin_val)
-                log_sliders[j] = Slider(ax=slider_axes[j], label="log"+init_params[j,0], valmin=-16, valmax=7, valinit=np.log10(lin_val))
+                log_sliders[j] = Slider(ax=slider_axes[j], label="log"+init_params[j,0], 
+                                        valmin=round(np.log10(lin_val))-4, valmax=round(np.log10(lin_val))+4, valinit=np.log10(lin_val))
                 sliders[j].on_changed(update)
                 log_sliders[j].on_changed(update)
     
@@ -161,12 +170,14 @@ def update(val):
                 param_list_updated.append(slider.val)
 
     padding = 0.1
-    xmax = max(line1.get_xdata())
-    xmin = min(line1.get_xdata())
-    ymax = max(line1.get_ydata())
-    ymin = min(line1.get_ydata())
-    ax1.set_xlim(xmin * (1-padding), xmax * (1+padding))
-    ax1.set_ylim(ymin * (1-padding), ymax * (1+padding))
+    #adjust limits
+    ax1.set_xlim(min(line1.get_xdata()) * (1-padding), max(line1.get_xdata()) * (1+padding))
+    ax1.set_ylim(min(line1.get_ydata()) * (1-padding), max(line1.get_ydata()) * (1+padding))
+    ax2.set_xlim(min(line2.get_xdata()) * (1-padding), max(line2.get_xdata()) * (1+padding))
+    ax2.set_ylim(min(line2.get_ydata()) * (1-padding), max(line2.get_ydata()) * (1+padding))
+    twin.set_xlim(min(line3.get_xdata()) * (1-padding), max(line3.get_xdata()) * (1+padding))
+    twin.set_ylim(min(line3.get_ydata()) * (1-padding), max(line3.get_ydata()) * (1+padding))
+
 
     line1.set_xdata(Z(w, *param_list_updated).real)
     line1.set_ydata(-1*Z(w, *param_list_updated).imag)
@@ -196,20 +207,22 @@ def reset(event):
             slider.reset()
 reset_button.on_clicked(reset)
 
-#changes axes limits
-togglezoom_ax = fig.add_axes([0.05, 0.75, 0.03, 0.02])
-togglezoom_button = Button(togglezoom_ax, "Zoom", hovercolor="0.975")
+#Checkboxes
+plots_ax = fig.add_axes([0, 0.5, 0.12, 0.1])
+plots_check = CheckButtons(ax = plots_ax, 
+                           labels=lines_by_labels.keys(),
+                           actives=[l.get_visible() for l in lines_by_labels.values()],
+                            label_props={'color': line_colors},
+                            frame_props={'edgecolor': line_colors},
+                            check_props={'facecolor': line_colors}
+                            )
 
-def togglezoom(event):
-    padding = 0.1
-    xmax = max(line1.get_xdata())
-    xmin = min(line1.get_xdata())
-    ymax = max(line1.get_ydata())
-    ymin = min(line1.get_ydata())
-    ax1.set_xlim(xmin * (1-padding), xmax * (1+padding))
-    ax1.set_ylim(ymin * (1-padding), ymax * (1+padding))
-togglezoom_button.on_clicked(togglezoom)
+def display_plots(label):
+    ln = lines_by_labels[label]
+    ln.set_visible(not ln.get_visible())
+    ln.figure.canvas.draw_idle()
 
+plots_check.on_clicked(display_plots)
 
 #log and fix buttons
 button_axes_pos = [[0.2, 0.15, 0.02, 0.03],
