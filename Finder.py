@@ -11,11 +11,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 
-#importing data
-def arg(z):
-    return np.arctan2(z.imag, z.real)
+# #importing data
+# def arg(z):
+#     return np.arctan2(z.imag, z.real)
 
-data = np.loadtxt("test_data\\nyquist2.txt", skiprows=1)
+# data = np.loadtxt("test_data\\nyquist2.txt", skiprows=1)
 
 def get_Rion(imp_spectra_real):
     """
@@ -78,27 +78,27 @@ def get_Rn(imp_spectra_real, imp_spectra_imag):
 
 
 
-#plotting data
-fig, (ax1, ax2) = plt.subplots(1, 2)
-twin = ax2.twinx()
+# #plotting data
+# fig, (ax1, ax2) = plt.subplots(1, 2)
+# twin = ax2.twinx()
 
-# Rn0, Rninf = get_Rn(data[:,2], data[:,3])
-# ax1.axvline(Rn0)
-# ax1.axvline(Rninf)
+# # Rn0, Rninf = get_Rn(data[:,2], data[:,3])
+# # ax1.axvline(Rn0)
+# # ax1.axvline(Rninf)
 
-ax1.plot(data[:,2], data[:,3], 'o', label="experimental impedance")
-ax2.plot(data[:,1], abs(data[:,2] + 1j*data[:,3]), 'o', label="measured |Z|", color="midnightblue")
-twin.plot(data[:,1], arg(data[:,2] - 1j*data[:,3]), 'o', label="measured argz", color="maroon")
+# ax1.plot(data[:,2], data[:,3], 'o', label="experimental impedance")
+# ax2.plot(data[:,1], abs(data[:,2] + 1j*data[:,3]), 'o', label="measured |Z|", color="midnightblue")
+# twin.plot(data[:,1], arg(data[:,2] - 1j*data[:,3]), 'o', label="measured argz", color="maroon")
 
-ax1.set_title("Impedance spectra")
-ax1.set_ylabel("-Z''")
-ax1.set_xlabel("Z")
-ax1.set_ylim(0,)
+# ax1.set_title("Impedance spectra")
+# ax1.set_ylabel("-Z''")
+# ax1.set_xlabel("Z")
+# ax1.set_ylim(0,)
 
-ax2.set_xscale('log')
-ax2.set_yscale('log')
-ax2.set_title("Resonance and bode plot")
-ax2.set_ylabel("|Z|")
-ax2.set_xlabel("w")
+# ax2.set_xscale('log')
+# ax2.set_yscale('log')
+# ax2.set_title("Resonance and bode plot")
+# ax2.set_ylabel("|Z|")
+# ax2.set_xlabel("w")
 
-plt.show()
+# plt.show()
