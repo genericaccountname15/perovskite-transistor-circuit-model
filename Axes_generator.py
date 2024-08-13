@@ -22,7 +22,7 @@ def gen_axes(param_list):
     y_pos = [0.15, 0.10, 0.05]
 
     object_height = 0.03
-    column_length = ( 0.82 - 0.07 ) / (no_of_columns - 1)
+    column_length = ( 0.82 - 0.07 ) / (no_of_columns)
     slider_length = column_length * 0.5
     button_length = column_length * 0.2
     padding = column_length * 0.1

@@ -16,7 +16,8 @@ from Axes_generator import gen_axes
 def arg(z):
     return np.arctan2(z.imag, z.real)
 
-def plotter(Z, initparams_filename, data_filename=None, guess_params=None):
+def plotter(Z, initparams_filename, data, guess_params=None):
+    global logscale
     df = pd.read_csv(initparams_filename, delimiter=",")
     init_params = df.values
 
@@ -204,8 +205,7 @@ def plotter(Z, initparams_filename, data_filename=None, guess_params=None):
 
 
     #plot data
-    if data_filename is not None:
-        data = np.loadtxt(data_filename, skiprows=1)
+    if data is not None:
         ax1.plot(data[:,2], data[:,3], 'o', label="experimental impedance")
         ax2.plot(data[:,1], abs(data[:,2] + 1j*data[:,3]), 'o', label="measured |Z|", color="midnightblue")
         twin.plot(data[:,1], arg(data[:,2] - 1j*data[:,3]), 'o', label="measured argz", color="maroon")
@@ -245,6 +245,6 @@ def plotter(Z, initparams_filename, data_filename=None, guess_params=None):
                 plist_output.append(slider.val)
     return plist_output
 
-
-from nanoparticles_model.Impedancefunction import Z
-plotter(Z, "nanoparticles_model\Initial_params.csv", "test_data\\nyquist2.txt")
+if __name__ == "__main__":
+    from nanoparticles_model.Impedancefunction import Z
+    plotter(Z, "nanoparticles_model\Initial_params.csv", "test_data\\nyquist2.txt")
