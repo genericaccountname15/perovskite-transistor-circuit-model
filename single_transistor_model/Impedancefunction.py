@@ -34,7 +34,7 @@ def Z(w, C_A_ratio, C_g, C_ion, R_ion, kbt, n_AB, Js, V, R_s, R_sh):
     Z_A = 1 / (1j * w * C_A)
 
     rec_current = Js * np.exp( q/n_AB/kbt * ( 1 - C_ion/C_A ) * V)
-    gen_current = Js * np.exp( -q/n_AB/kbt * C_A/C_ion * V)
+    gen_current = Js * np.exp( -q/n_AB/kbt * C_ion/C_A * V)
 
     Z_elec = 1 / (rec_current * q/n_AB/kbt * (1 - Z_A/Z_ion) + gen_current * q/n_AB/kbt * Z_A/Z_ion)
 

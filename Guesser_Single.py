@@ -7,7 +7,6 @@ Timothy Chew
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import cmath
 import scipy.constants as spc
 import scipy.special as sps
@@ -28,7 +27,7 @@ def param_guesser(nobiasdata, biasdata, bias_voltage, kbt, Js):
     nobias_real = nobiasdata[:,2]
     nobias_imag = nobiasdata[:,3]
     nobias_mag = abs(nobias_real + 1j * nobias_imag)
-    nobias_phase = arg(nobias_real + 1j * nobias_imag)
+    nobias_phase = arg(nobias_real - 1j * nobias_imag)
 
     bias_real = biasdata[:,2]
     bias_imag = biasdata[:,3]
@@ -43,9 +42,18 @@ def param_guesser(nobiasdata, biasdata, bias_voltage, kbt, Js):
     CA = Cion / (1 - Rninf/Rn0)
     CA_ratio = CA/Cion
 
-    n = spc.elementary_charge/kbt * (1 - CA/Cion) * bias_voltage * 1 / sps.lambertw(1 / Js / Rninf)
+    n = spc.elementary_charge/kbt * (1 - Cion/CA) * bias_voltage * 1 / sps.lambertw(1 / Js / Rninf).real
 
     Rsh = 1e6
 
     param_list = (CA_ratio, Cg, Cion, Rion, kbt, n, Js, bias_voltage, Rs, Rsh)
     return param_list
+
+
+if __name__ == "__main__":
+    nobias_data = np.loadtxt("test_data\\nyquist_dark.txt", skiprows=1)
+    bias_data = np.loadtxt("test_data\\nyquist.txt", skiprows=1)
+    bias_voltage = 1.023
+
+    param_guess = param_guesser(nobias_data, bias_data, bias_voltage, 4.1302114835e-21, 2.31e-16)
+    print(param_guess)

@@ -11,11 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 
-# #importing data
-# def arg(z):
-#     return np.arctan2(z.imag, z.real)
-
-# data = np.loadtxt("test_data\\nyquist2.txt", skiprows=1)
+def arg(z):
+    return np.arctan2(z.imag, z.real)
 
 def get_Rion(imp_spectra_real):
     """
@@ -64,41 +61,57 @@ def get_Cion(w, imp_phase, C_g, Rion):
     """
     argZ_max_index = np.argmax(imp_phase)
     wmax = w[argZ_max_index]
-    return 1 / (Rion * Rion * w * w * C_g) - C_g
+    return 1 / (Rion * Rion * wmax * wmax * C_g) - C_g
+
 
 def get_Rn(imp_spectra_real, imp_spectra_imag):
     """
     Returns value of Rn0 and Rninf under non-0V bias case
-    Uses impedance spectra peaks
+    Uses impedance spectra magnitude flats
     """
     peaks = find_peaks(imp_spectra_imag)[0]
-    return imp_spectra_real[peaks[1]], imp_spectra_real[peaks[2]]
+    #0th peak - first loop peak
+    #R inf is length to lowest point
+
+    #check for lowest point after 0th peak
+    RnO_index = np.argmin(imp_spectra_imag[peaks[0]+1:]) + peaks[0] - 1
+    RnO = imp_spectra_real[RnO_index]
+
+    #possible indices for Rninf (after peak of 1st semicircle to end on 2nd semicircle)
+    Rninf_indices = range(peaks[0]+1,RnO_index)
+
+    #look for peaks again
+    peaks = find_peaks(imp_spectra_real[Rninf_indices])[0]
+    Rninf = imp_spectra_real[peaks[0]]
+
+    return RnO, Rninf
 
 
 
+if __name__ == "__main__":
+    data = np.loadtxt("test_data\\nyquist_dark.txt", skiprows=1)
 
+    #plotting data
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    twin = ax2.twinx()
 
-# #plotting data
-# fig, (ax1, ax2) = plt.subplots(1, 2)
-# twin = ax2.twinx()
+    # Rn0, Rninf = get_Rn(data[:,2], data[:,3])
+    # ax1.axvline(Rn0)
+    # ax1.axvline(Rninf)
 
-# # Rn0, Rninf = get_Rn(data[:,2], data[:,3])
-# # ax1.axvline(Rn0)
-# # ax1.axvline(Rninf)
+    ax1.plot(data[:,2], data[:,3], 'o', label="experimental impedance")
+    ax2.plot(data[:,1], abs(data[:,2] + 1j*data[:,3]), 'o', label="measured |Z|", color="midnightblue")
+    twin.plot(data[:,1], arg(data[:,2] - 1j*data[:,3]), 'o', label="measured argz", color="maroon")
 
-# ax1.plot(data[:,2], data[:,3], 'o', label="experimental impedance")
-# ax2.plot(data[:,1], abs(data[:,2] + 1j*data[:,3]), 'o', label="measured |Z|", color="midnightblue")
-# twin.plot(data[:,1], arg(data[:,2] - 1j*data[:,3]), 'o', label="measured argz", color="maroon")
+    ax1.set_title("Impedance spectra")
+    ax1.set_ylabel("-Z''")
+    ax1.set_xlabel("Z")
+    ax1.set_ylim(0,)
 
-# ax1.set_title("Impedance spectra")
-# ax1.set_ylabel("-Z''")
-# ax1.set_xlabel("Z")
-# ax1.set_ylim(0,)
+    ax2.set_xscale('log')
+    ax2.set_yscale('log')
+    ax2.set_title("Resonance and bode plot")
+    ax2.set_ylabel("|Z|")
+    ax2.set_xlabel("w")
 
-# ax2.set_xscale('log')
-# ax2.set_yscale('log')
-# ax2.set_title("Resonance and bode plot")
-# ax2.set_ylabel("|Z|")
-# ax2.set_xlabel("w")
-
-# plt.show()
+    plt.show()
