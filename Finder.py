@@ -45,8 +45,8 @@ def get_Rs_alt(imp_spectra_real, imp_spectra_imag):
     """
     grad = imp_spectra_imag[1] - imp_spectra_imag[0] / (imp_spectra_real[1] - imp_spectra_real[0])
     #solving for x when y=0 in y - y1 = m(x - x1)
-    Rs = - imp_spectra_imag[0] / grad + imp_spectra_real
-    return min(imp_spectra_real)
+    Rs = - imp_spectra_imag[0] / grad + imp_spectra_real[0]
+    return Rs
 
 def get_Cg(w, imp_phase, Rs, Rion):
     """
