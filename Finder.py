@@ -66,6 +66,29 @@ def get_Cion(w, imp_phase, C_g, Rion):
     wmax = w[argZ_max_index]
     return 1 / (Rion * Rion * wmax * wmax * C_g) - C_g
 
+def get_Cion_alt(w, imp_spectra_real, imp_spectra_imag, Rion):
+    """
+    Alternative method using impedance spectra under bias and
+    time constants
+    """
+    #using reused code frm Rn
+    peaks = find_peaks(imp_spectra_imag)[0]
+    #0th peak - first loop peak
+    #R inf is length to lowest point
+
+    #check for lowest point after 0th peak
+    RnO_index = np.argmin(imp_spectra_imag[peaks[0]+1:]) + peaks[0] - 1
+
+    #possible indices for Rninf (after peak of 1st semicircle to end on 2nd semicircle)
+    Rninf_indices = range(peaks[0]+1,RnO_index)
+
+    #look for peaks again
+    peaks = find_peaks(imp_spectra_real[Rninf_indices])[0]
+    
+    time_constant_index = peaks[1]
+    w_ion = w[time_constant_index]
+    Cion = 1 / Rion / w_ion
+    return Cion
 
 def get_Rn(imp_spectra_real, imp_spectra_imag, Rs):
     """

@@ -36,7 +36,8 @@ def param_guesser(nobiasdata, biasdata, bias_voltage, kbt, Js):
     Rs = find.get_Rs_alt(bias_real, bias_imag)
     Cg = find.get_Cg(nobias_w, nobias_phase, Rs, Rion)
     Cion = find.get_Cion(nobias_w, nobias_phase, Cg, Rion)
-    Cion = 0.00543
+    Cion = find.get_Cion_alt(biasdata[:,1], bias_real, bias_imag, Rion)
+    #Cion = 0.00543
 
     Rn0, Rninf = find.get_Rn(bias_real, bias_imag, Rs)
 

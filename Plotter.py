@@ -225,6 +225,14 @@ def plotter(Z, initparams_filename, data, guess_params=None):
 
     twin.set_ylabel("Phase")
 
+    padding = 0.1
+    ax1.set_xlim(min(line1.get_xdata()) * (1-padding), max(line1.get_xdata()) * (1+padding))
+    ax1.set_ylim(min(line1.get_ydata()) * (1-padding), max(line1.get_ydata()) * (1+padding))
+    ax2.set_xlim(min(line2.get_xdata()) * (1-padding), max(line2.get_xdata()) * (1+padding))
+    ax2.set_ylim(min(line2.get_ydata()) * (1-padding), max(line2.get_ydata()) * (1+padding))
+    twin.set_xlim(min(line3.get_xdata()) * (1-padding), max(line3.get_xdata()) * (1+padding))
+    twin.set_ylim(min(line3.get_ydata()) * (1-padding), max(line3.get_ydata()) * (1+padding))
+
     plt.show()
 
     #get slider values
