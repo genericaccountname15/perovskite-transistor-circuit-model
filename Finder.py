@@ -38,11 +38,14 @@ def get_Rs(imp_magnitude):
     """
     return min(imp_magnitude)
 
-def get_Rs_alt(imp_spectra_real):
+def get_Rs_alt(imp_spectra_real, imp_spectra_imag):
     """
     Alternative method of finding Rs
     Uses impedance spectra under non 0V bias
     """
+    grad = imp_spectra_imag[1] - imp_spectra_imag[0] / (imp_spectra_real[1] - imp_spectra_real[0])
+    #solving for x when y=0 in y - y1 = m(x - x1)
+    Rs = - imp_spectra_imag[0] / grad + imp_spectra_real
     return min(imp_spectra_real)
 
 def get_Cg(w, imp_phase, Rs, Rion):
@@ -64,7 +67,7 @@ def get_Cion(w, imp_phase, C_g, Rion):
     return 1 / (Rion * Rion * wmax * wmax * C_g) - C_g
 
 
-def get_Rn(imp_spectra_real, imp_spectra_imag):
+def get_Rn(imp_spectra_real, imp_spectra_imag, Rs):
     """
     Returns value of Rn0 and Rninf under non-0V bias case
     Uses impedance spectra magnitude flats
@@ -75,14 +78,14 @@ def get_Rn(imp_spectra_real, imp_spectra_imag):
 
     #check for lowest point after 0th peak
     RnO_index = np.argmin(imp_spectra_imag[peaks[0]+1:]) + peaks[0] - 1
-    RnO = imp_spectra_real[RnO_index]
+    RnO = imp_spectra_real[RnO_index] - Rs
 
     #possible indices for Rninf (after peak of 1st semicircle to end on 2nd semicircle)
     Rninf_indices = range(peaks[0]+1,RnO_index)
 
     #look for peaks again
     peaks = find_peaks(imp_spectra_real[Rninf_indices])[0]
-    Rninf = imp_spectra_real[peaks[0]]
+    Rninf = imp_spectra_real[peaks[0]] - Rs
 
     return RnO, Rninf
 

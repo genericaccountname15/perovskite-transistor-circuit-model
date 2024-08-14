@@ -33,16 +33,18 @@ def param_guesser(nobiasdata, biasdata, bias_voltage, kbt, Js):
     bias_imag = biasdata[:,3]
 
     Rion = find.get_Rion(nobias_real)
-    Rs = find.get_Rs(nobias_mag)
+    Rs = find.get_Rs_alt(bias_real, bias_imag)
     Cg = find.get_Cg(nobias_w, nobias_phase, Rs, Rion)
     Cion = find.get_Cion(nobias_w, nobias_phase, Cg, Rion)
+    Cion = 0.00543
 
-    Rn0, Rninf = find.get_Rn(bias_real, bias_imag)
+    Rn0, Rninf = find.get_Rn(bias_real, bias_imag, Rs)
 
     CA = Cion / (1 - Rninf/Rn0)
     CA_ratio = CA/Cion
 
-    n = spc.elementary_charge/kbt * (1 - Cion/CA) * bias_voltage * 1 / sps.lambertw(1 / Js / Rninf).real
+    n = (spc.elementary_charge/kbt * (1 - Cion/CA) * bias_voltage /
+          sps.lambertw(1/Js/Rninf * (1 - Cion/CA) * bias_voltage ).real)
 
     Rsh = 1e6
 

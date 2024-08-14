@@ -128,7 +128,7 @@ def plotter(Z, initparams_filename, data, guess_params=None):
         if logscale:
             for i in range(len(init_params)):
                 if init_params[i,3]:
-                    param_list_updated.append(log_sliders[i].val)
+                    param_list_updated.append(10 ** log_sliders[i].val)
                 elif isinstance(sliders[i], float):
                     param_list_updated.append(sliders[i])
                 else:
@@ -247,4 +247,5 @@ def plotter(Z, initparams_filename, data, guess_params=None):
 
 if __name__ == "__main__":
     from nanoparticles_model.Impedancefunction import Z
-    plotter(Z, "nanoparticles_model\Initial_params.csv", "test_data\\nyquist2.txt")
+    bias_data = np.loadtxt("test_data\\nyquist2.txt", skiprows=1)
+    plotter(Z, "nanoparticles_model\Initial_params.csv", bias_data)
