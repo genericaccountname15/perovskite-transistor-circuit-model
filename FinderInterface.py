@@ -12,9 +12,12 @@ import Finder2 as find
 from matplotlib.widgets import Slider
 from Axes_generator import gen_axes
 
-def Interface(bias_data, nobias_data=None, IV_data=None):
+def Interface(bias_data, nobias_data=None, IV_data=None, nanoparticle=False, run_checker=True):
     """
     Plots things and checks for things
+    Args:
+        nanoparticles (bool): whether to check for a nanoparticle time constant
+        run_checker (bool): whether to run the checker for obtained features
     """
     #unpacking data
     bias_w = bias_data[:,1]
@@ -40,19 +43,27 @@ def Interface(bias_data, nobias_data=None, IV_data=None):
 
     Rion = find.get_Rion(nobias_real, Rsh)
     if Rion is None:
-        Rsh = find.get_Rsh(bias_real, Rsh)
+        #maybe the thing measured from the IV is Rion
+        Rion = Rsh
+        Rsh = find.get_Rsh(nobias_real, Rsh)
+    
+    #bit for nanoparticles
+    if nanoparticle:
+        wnano = find.get_tconstant_nano(bias_w, wion_bias, wg_bias)
+    else:
+        wnano = None
     
     #checking data
-    wg_bias, wion_bias = check_tconstants(wg_bias, wion_bias, bias_data)
-    wg_nobias, wion_nobias = check_tconstants(wg_nobias, wion_nobias, nobias_data)
-    Rn0, Rninf = check_Rn(Rn0, Rninf, bias_data, Rs)
+    if run_checker:
+        wg_bias, wion_bias, wnano = check_tconstants(wg_bias, wion_bias, bias_data, wnano)
+        wg_nobias, wion_nobias, emptyhead = check_tconstants(wg_nobias, wion_nobias, nobias_data)
+        Rn0, Rninf = check_Rn(Rn0, Rninf, bias_data, Rs)
 
-    
-    features = [Rion, Rsh, Rs, Rn0, Rninf, wg_bias, wg_nobias, wion_bias, wion_nobias]
+    features = (Rion, Rsh, Rs, Rn0, Rninf, wg_bias, wg_nobias, wion_bias, wion_nobias, wnano)
     return features
 
 
-def check_tconstants(wg, wion, nyquist_data):
+def check_tconstants(wg, wion, nyquist_data, wnano=None):
     """
     Checks the time constants wion and wg
     Accepts both bias and non bias cases
@@ -87,19 +98,43 @@ def check_tconstants(wg, wion, nyquist_data):
     #sliders
     fig.subplots_adjust(bottom=0.25)
 
-    ax_wion = fig.add_axes([0.2, 0.1, 0.2, 0.03])
-    ax_wg = fig.add_axes([0.5, 0.1, 0.2, 0.03])
+    ax_wion = fig.add_axes([0.1, 0.1, 0.2, 0.03])
+    ax_wg = fig.add_axes([0.4, 0.1, 0.2, 0.03])
 
     wion_slider = Slider(ax = ax_wion, label = "wion index", valmin=0, valmax=len(w_data)-1, valinit=wion_index, valstep=1)
     wg_slider = Slider(ax = ax_wg, label = "wg index", valmin=0, valmax=len(w_data)-1, valinit=wg_index, valstep=1)
 
-    def update(val):
+    if wnano is not None:
+        wnano_index = np.where(w_data == wnano)[0][0]
+        
+        #line objects
+        wnano_imp, = ax1.plot(impreal_data[wnano_index], impimag_data[wnano_index], 'o', label="wnano", color="pink", markersize=10)
+        wnano_mag, = ax2.plot(w_data[wnano_index], mag_data[wnano_index], 'o', label="wnano", color="pink", markersize=10)
+        wnano_phase, = twin.plot(w_data[wnano_index], phase_data[wnano_index], 'o', label="wnano", color="pink", markersize=10)
+
+        ax_wnano = fig.add_axes([0.7, 0.1, 0.2, 0.03])
+
+        wnano_slider = Slider(ax = ax_wnano, label = "wnano index", valmin=0, valmax=len(w_data)-1, valinit=wnano_index, valstep=1)
+
+    #output variables
+    wg_output = wg
+    wion_output = wion
+    wnano_output = wnano
+
+    def update_wion(val):
+        nonlocal wion_output #so output values can change when sliders are moved
+
         wion_imp.set_xdata([impreal_data[wion_slider.val]])
         wion_imp.set_ydata([impimag_data[wion_slider.val]])
         wion_mag.set_xdata([w_data[wion_slider.val]])
         wion_mag.set_ydata([mag_data[wion_slider.val]])
         wion_phase.set_xdata([w_data[wion_slider.val]])
         wion_phase.set_ydata([phase_data[wion_slider.val]])
+        
+        wion_output = w_data[wion_slider.val]
+
+    def update_wg(val):
+        nonlocal wg_output
 
         wg_imp.set_xdata([impreal_data[wg_slider.val]])
         wg_imp.set_ydata([impimag_data[wg_slider.val]])
@@ -108,12 +143,27 @@ def check_tconstants(wg, wion, nyquist_data):
         wg_phase.set_xdata([w_data[wg_slider.val]])
         wg_phase.set_ydata([phase_data[wg_slider.val]])
 
-    wion_slider.on_changed(update)
-    wg_slider.on_changed(update)
+        wg_output = w_data[wg_slider.val]
+    
+    def update_wnano(val):
+        nonlocal wnano_output
 
-    #output slider values
-    wion_output = w_data[wion_slider.val]
-    wg_output = w_data[wg_slider.val]
+        wnano_imp.set_xdata([impreal_data[wnano_slider.val]])
+        wnano_imp.set_ydata([impimag_data[wnano_slider.val]])
+        wnano_mag.set_xdata([w_data[wnano_slider.val]])
+        wnano_mag.set_ydata([mag_data[wnano_slider.val]])
+        wnano_phase.set_xdata([w_data[wnano_slider.val]])
+        wnano_phase.set_ydata([phase_data[wnano_slider.val]])
+
+        wnano_output = w_data[wnano_slider.val]
+
+    wion_slider.on_changed(update_wion)
+    wg_slider.on_changed(update_wg)
+
+    if wnano is not None:
+        wnano_slider.on_changed(update_wnano)
+    else:
+        wnano_output = None
 
 
 
@@ -134,8 +184,7 @@ def check_tconstants(wg, wion, nyquist_data):
     twin.legend()
 
     plt.show()
-
-    return wg_output, wion_output
+    return wg_output, wion_output, wnano_output
 
 def check_Rn(Rn0, Rninf, nyquist_data, Rs):
     """
@@ -188,8 +237,9 @@ def check_Rn(Rn0, Rninf, nyquist_data, Rs):
     Rninf_slider.on_changed(update)
 
     #output slider values
-    Rn0_output = impreal_data[Rn0_slider.val]
-    Rninf_output = impreal_data[Rninf_slider.val]
+    #remember to delete off Rs
+    Rn0_output = impreal_data[Rn0_slider.val] - Rs
+    Rninf_output = impreal_data[Rninf_slider.val] - Rs
 
 
     #axes styling
@@ -212,8 +262,15 @@ def check_Rn(Rn0, Rninf, nyquist_data, Rs):
     return Rn0_output, Rninf_output
 
 if __name__ == "__main__":
-    #loading data
-    IV_data = np.loadtxt("test_data/Pixel5ControlLightForwardsweep/CVafter.txt", skiprows=1)
-    bias_data = np.loadtxt("test_data/nyquist.txt", skiprows=1)
-    nobias_data = np.loadtxt("test_data/nyquist_dark.txt", skiprows=1)
-    Interface(bias_data, nobias_data, IV_data)
+    # # reference cell
+    # #loading data
+    # IV_data = np.loadtxt("test_data/Pixel5ControlLightForwardsweep/CVafter.txt", skiprows=1)
+    # bias_data = np.loadtxt("test_data/nyquist.txt", skiprows=1)
+    # nobias_data = np.loadtxt("test_data/nyquist_dark.txt", skiprows=1)
+    # Interface(bias_data, nobias_data, IV_data)
+
+    # nanoparticles
+    IV_data = np.loadtxt("test_data/Pixel1NanoparticlesLightForwardsweep/CVafter.txt", skiprows=1)
+    bias_data = np.loadtxt("test_data/nyquist2.txt", skiprows=1)
+    nobias_data = np.loadtxt("test_data/nyquist2_dark.txt", skiprows=1)
+    Interface(bias_data, nobias_data, IV_data, nanoparticle=True)

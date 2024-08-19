@@ -58,6 +58,7 @@ def get_Rion(Zreal, Rsh_guess):
 def get_Rsh(Zreal, Rsh_guess):
     """
     For low shunt case
+    Gets Rsh from nyquist plot
     """
     if max(Zreal) > Rsh_guess:
         return max(Zreal)
@@ -85,6 +86,18 @@ def get_Rn(Zreal, Zimag, Rs):
     Rninf = Zreal[peaks[0]] - Rs
 
     return RnO, Rninf
+
+def get_tconstant_nano(w, wion_bias, wg_bias):
+    """
+    Find time constant of nanoparticle bit
+    Returns a point between wion and wg cuz idk how to find the point systematically
+    """
+    wg_index = np.where(w==wg_bias)[0][0]
+    wion_index = np.where(w==wion_bias)[0][0]
+    wnano_index = (wg_index + wion_index) // 2
+
+    wnano = w[wnano_index]
+    return wnano
 
 #functions which calculate parameters values
 #should put in a different module
@@ -117,9 +130,22 @@ def get_Cion(wion, Rion):
     Cion = 1 / (Rion * wion)
     return Cion
 
+def get_Rnano(w, Zreal, wnano, Rninf, Rs):
+    """
+    Guesses resistance of nanoparticle circuit
+    Rninf + Rs - Dist. to nanoparticle time constant
+    """
+    wnano_index = np.where(w==wnano)[0][0]
+    Rnano = Rninf + Rs - Zreal[wnano_index]
+    return Rnano
+
+def get_Cnano(wnano, Rnano):
+    Cnano = 1 / (wnano * Rnano)
+    return Cnano
 
 if __name__ == "__main__":
-    data = np.loadtxt("test_data\Pixel5ControlLightForwardsweep\\nyquist.txt", skiprows=1)
+    #data = np.loadtxt("test_data\Pixel5ControlLightForwardsweep\\nyquist.txt", skiprows=1)
+    data = np.loadtxt("test_data\Pixel1NanoparticlesLightForwardsweep\\nyquist.txt", skiprows=1)
     Zreal = data[:,2]
     Zimag = data[:,3]
 
