@@ -1,0 +1,219 @@
+"""
+User interface for Finder module
+
+Timothy Chew
+17/8/2024
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import Finder2 as find
+
+from matplotlib.widgets import Slider
+from Axes_generator import gen_axes
+
+def Interface(bias_data, nobias_data=None, IV_data=None):
+    """
+    Plots things and checks for things
+    """
+    #unpacking data
+    bias_w = bias_data[:,1]
+    bias_real = bias_data[:,2]
+    bias_imag = bias_data[:,3]
+
+    nobias_w = nobias_data[:,1]
+    nobias_real = nobias_data[:,2]
+    nobias_imag = nobias_data[:,3]
+
+    #getting values
+    if IV_data is not None:
+        Rsh = find.get_Rsh_IV(IV_data[:,3], IV_data[:,4])
+    else:
+        Rsh = 1e6
+    
+    wg_bias, wion_bias = find.get_tconstants(bias_w, bias_real, bias_imag, bias=True)
+    wg_nobias, wion_nobias = find.get_tconstants(nobias_w, nobias_real, nobias_imag, bias=False)
+
+    Rs = find.get_Rs_alt(bias_real, bias_imag)
+
+    Rn0, Rninf = find.get_Rn(bias_real, bias_imag, Rs)
+
+    Rion = find.get_Rion(nobias_real, Rsh)
+    if Rion is None:
+        Rsh = find.get_Rsh(bias_real, Rsh)
+    
+    #checking data
+    wg_bias, wion_bias = check_tconstants(wg_bias, wion_bias, bias_data)
+    wg_nobias, wion_nobias = check_tconstants(wg_nobias, wion_nobias, nobias_data)
+    Rn0, Rninf = check_Rn(Rn0, Rninf, bias_data, Rs)
+
+    
+    features = [Rion, Rsh, Rs, Rn0, Rninf, wg_bias, wg_nobias, wion_bias, wion_nobias]
+    return features
+
+
+def check_tconstants(wg, wion, nyquist_data):
+    """
+    Checks the time constants wion and wg
+    Accepts both bias and non bias cases
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    twin = ax2.twinx()
+
+    w_data = nyquist_data[:,1]
+    impreal_data = nyquist_data[:,2]
+    impimag_data = nyquist_data[:,3]
+    mag_data = abs(nyquist_data[:,2] + 1j*nyquist_data[:,3])
+    phase_data = np.arctan2(-nyquist_data[:,3], nyquist_data[:,2])
+
+    ax1.plot(impreal_data, impimag_data, 'o', label="experimental impedance")
+    ax2.plot(w_data, mag_data, 'o', label="measured |Z|", color="midnightblue")
+    twin.plot(w_data, phase_data, 'o', label="measured argz", color="maroon")
+
+    #highlighting
+    #WHY IS np.where LIKE THIS AHHHHHH
+    wg_index = np.where(w_data == wg)[0][0]
+    wion_index = np.where(w_data == wion)[0][0]
+
+    #line objects
+    wion_imp, = ax1.plot(impreal_data[wion_index], impimag_data[wion_index], 'o', label="wion", color="orange", markersize=10)
+    wion_mag, = ax2.plot(w_data[wion_index], mag_data[wion_index], 'o', label="wion", color="orange", markersize=10)
+    wion_phase, = twin.plot(w_data[wion_index], phase_data[wion_index], 'o', label="wion", color="orange", markersize=10)
+
+    wg_imp, = ax1.plot(impreal_data[wg_index], impimag_data[wg_index], 'o', label="wg", color="green", markersize=10)
+    wg_mag, = ax2.plot(w_data[wg_index], mag_data[wg_index], 'o', label="wg", color="green", markersize=10)
+    wg_phase, = twin.plot(w_data[wg_index], phase_data[wg_index], 'o', label="wg", color="green", markersize=10)
+
+    #sliders
+    fig.subplots_adjust(bottom=0.25)
+
+    ax_wion = fig.add_axes([0.2, 0.1, 0.2, 0.03])
+    ax_wg = fig.add_axes([0.5, 0.1, 0.2, 0.03])
+
+    wion_slider = Slider(ax = ax_wion, label = "wion index", valmin=0, valmax=len(w_data)-1, valinit=wion_index, valstep=1)
+    wg_slider = Slider(ax = ax_wg, label = "wg index", valmin=0, valmax=len(w_data)-1, valinit=wg_index, valstep=1)
+
+    def update(val):
+        wion_imp.set_xdata([impreal_data[wion_slider.val]])
+        wion_imp.set_ydata([impimag_data[wion_slider.val]])
+        wion_mag.set_xdata([w_data[wion_slider.val]])
+        wion_mag.set_ydata([mag_data[wion_slider.val]])
+        wion_phase.set_xdata([w_data[wion_slider.val]])
+        wion_phase.set_ydata([phase_data[wion_slider.val]])
+
+        wg_imp.set_xdata([impreal_data[wg_slider.val]])
+        wg_imp.set_ydata([impimag_data[wg_slider.val]])
+        wg_mag.set_xdata([w_data[wg_slider.val]])
+        wg_mag.set_ydata([mag_data[wg_slider.val]])
+        wg_phase.set_xdata([w_data[wg_slider.val]])
+        wg_phase.set_ydata([phase_data[wg_slider.val]])
+
+    wion_slider.on_changed(update)
+    wg_slider.on_changed(update)
+
+    #output slider values
+    wion_output = w_data[wion_slider.val]
+    wg_output = w_data[wg_slider.val]
+
+
+
+    #axes styling
+    ax1.set_title("Impedance spectra")
+    ax1.set_ylabel("-Z''")
+    ax1.set_xlabel("Z")
+    ax1.set_ylim(0,)
+
+    ax2.set_xscale('log')
+    ax2.set_yscale('log')
+    ax2.set_title("Resonance and bode plot")
+    ax2.set_ylabel("|Z|")
+    ax2.set_xlabel("w")
+
+    ax1.legend()
+    ax2.legend()
+    twin.legend()
+
+    plt.show()
+
+    return wg_output, wion_output
+
+def check_Rn(Rn0, Rninf, nyquist_data, Rs):
+    """
+    Checks Rn0 and Rninf guesses
+    Accepts only bias data
+    """
+    #plotting data
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+
+    w_data = nyquist_data[:,1]
+    impreal_data = nyquist_data[:,2]
+    impimag_data = nyquist_data[:,3]
+    mag_data = abs(nyquist_data[:,2] + 1j*nyquist_data[:,3])
+
+    ax1.plot(impreal_data, impimag_data, 'o', label="experimental impedance")
+    ax2.plot(w_data, mag_data, 'o', label="measured |Z|", color="midnightblue")
+
+    #Rn lines
+    Rn0_index = np.where(impreal_data == Rn0 + Rs)[0][0]
+    Rninf_index = np.where(impreal_data == Rninf + Rs)[0][0]
+
+    #dummy data cuz vlines and hlines DONT HAVE SET METHODS WHYYYYY
+    ybaka = np.linspace(0, np.max(impimag_data))
+    xbaka = np.linspace(np.min(w_data), np.max(w_data))
+
+    Rn0_imp, = ax1.plot(np.full_like(ybaka, impreal_data[Rn0_index]), ybaka, label="Rn0", color="red")
+    Rninf_imp, = ax1.plot(np.full_like(ybaka, impreal_data[Rninf_index]), ybaka, label="Rninf", color="orange")
+
+    Rn0_mag, = ax2.plot(xbaka, np.full_like(xbaka, mag_data[Rn0_index]), label="Rn0", color="red")
+    Rninf_mag, = ax2.plot(xbaka, np.full_like(xbaka, mag_data[Rninf_index]), label="Rninf", color="orange")
+
+
+    #sliders
+    fig.subplots_adjust(bottom=0.25)
+
+    ax_Rn0_slider = fig.add_axes([0.2, 0.1, 0.2, 0.03])
+    ax_Rninf_slider = fig.add_axes([0.5, 0.1, 0.2, 0.03])
+
+    Rn0_slider = Slider(ax = ax_Rn0_slider, label = "Rn0 index", valmin=0, valmax=len(w_data)-1, valinit=Rn0_index, valstep=1)
+    Rninf_slider = Slider(ax = ax_Rninf_slider, label = "Rninf index", valmin=0, valmax=len(w_data)-1, valinit=Rninf_index, valstep=1)
+
+    def update(val):
+        Rn0_imp.set_xdata([np.full_like(ybaka, impreal_data[Rn0_slider.val])])
+        Rninf_imp.set_xdata([np.full_like(ybaka, impreal_data[Rninf_slider.val])])
+
+        Rn0_mag.set_ydata([np.full_like(xbaka, mag_data[Rn0_slider.val])])
+        Rninf_mag.set_ydata([np.full_like(xbaka, mag_data[Rninf_slider.val])])
+
+    Rn0_slider.on_changed(update)
+    Rninf_slider.on_changed(update)
+
+    #output slider values
+    Rn0_output = impreal_data[Rn0_slider.val]
+    Rninf_output = impreal_data[Rninf_slider.val]
+
+
+    #axes styling
+    ax1.set_title("Impedance spectra")
+    ax1.set_ylabel("-Z''")
+    ax1.set_xlabel("Z")
+    ax1.set_ylim(0,)
+
+    ax2.set_xscale('log')
+    ax2.set_yscale('log')
+    ax2.set_title("Resonance and bode plot")
+    ax2.set_ylabel("|Z|")
+    ax2.set_xlabel("w")
+
+    ax1.legend()
+    ax2.legend()
+
+    plt.show()
+
+    return Rn0_output, Rninf_output
+
+if __name__ == "__main__":
+    #loading data
+    IV_data = np.loadtxt("test_data/Pixel5ControlLightForwardsweep/CVafter.txt", skiprows=1)
+    bias_data = np.loadtxt("test_data/nyquist.txt", skiprows=1)
+    nobias_data = np.loadtxt("test_data/nyquist_dark.txt", skiprows=1)
+    Interface(bias_data, nobias_data, IV_data)
