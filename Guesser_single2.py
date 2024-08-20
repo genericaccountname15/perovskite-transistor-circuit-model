@@ -72,7 +72,7 @@ if __name__ == "__main__":
     nobias_data = np.loadtxt("test_data/nyquist2_dark.txt", skiprows=1)
     bias_voltage = 1.023
 
-    plist = guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=True, bias=True, nanoparticles=True)
+    plist = guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=False, bias=True, nanoparticles=True)
 
     from nanoparticles_model.Impedancefunction import Z
     from Plotter import plotter
