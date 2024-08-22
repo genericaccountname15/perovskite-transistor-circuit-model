@@ -1,143 +1,160 @@
 """
-Locates positions of key points on plots
-Calculates parameter guess values for 0V bias
-Finds values on plots for non-0V bias
+Updated version of Finder.py
 
 Timothy Chew
-12/8/2024
+16/8/2024
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 
-def arg(z):
-    return np.arctan2(z.imag, z.real)
+#Functions that find key points on graph
+def get_Rsh_IV(I, V, scan_range=150):
+    """
+    Finds shunt resistance from gradient of IV curve
+    """
+    #get gradient using polyfit
+    ydata = V[0:scan_range]
+    xdata = I[0:scan_range]
+    fit = np.polyfit(xdata, ydata, 1)
+    return fit[0]
 
-def get_Rion(imp_spectra_real):
+def get_tconstants(w, Zreal, Zimag, bias=False):
     """
-    Returns the value of Rion given an impedance spectra's real values
-    Takes the max of the real values (semicircle width)
-    Args:
-        imp_spectra_real (array): real part of measured impedance under 0V bias
+    Finds frequency values of loop's time constants
     """
-    return max(imp_spectra_real)
+    phase = np.arctan2(-Zimag, Zreal)
+    peaks = find_peaks(-phase)[0]
+    wg_guess = w[peaks[0]]
+    if bias:
+        wion_guess = w[peaks[1]]
+    else:
+        wion_guess = w[np.argmax(Zimag)]
+    return wg_guess, wion_guess
 
-def get_Rion_alt(imp_magnitude):
-    """
-    Alternative method of getting R_ion
-    Returns the value of Rion given the magnitude of impedance under 0V bias
-    Takes the max value (flat part at top)
-    """
-    return max(imp_magnitude)
-
-def get_Rs(imp_magnitude):
-    """
-    Returns the value of Rs given magnitude of impedance under 0V bias
-    Takes the min value (flat part at bottom)
-    """
-    return min(imp_magnitude)
-
-def get_Rs_alt(imp_spectra_real, imp_spectra_imag):
+def get_Rs_alt(Zreal, Zimag):
     """
     Alternative method of finding Rs
     Uses impedance spectra under non 0V bias
     """
-    grad = imp_spectra_imag[1] - imp_spectra_imag[0] / (imp_spectra_real[1] - imp_spectra_real[0])
+    grad = Zimag[1] - Zimag[0] / (Zreal[1] - Zreal[0])
     #solving for x when y=0 in y - y1 = m(x - x1)
-    Rs = - imp_spectra_imag[0] / grad + imp_spectra_real[0]
+    Rs = - Zimag[0] / grad + Zreal[0]
     return Rs
 
-def get_Cg(w, imp_phase, Rs, Rion):
+def get_Rion(Zreal, Rsh_guess):
     """
-    Returns the value of C_g given the phase spectra under 0V bias
-    Based on minimum point
+    Returns the value of Rion given an impedance spectra's real values
+    Takes the max of the real values (semicircle width)
+    If shunt is low, return None
     """
-    argZ_min_index = np.argmin(imp_phase)
-    wmin = w[argZ_min_index]
-    return 1 / (wmin * np.sqrt(Rs * Rion))
+    Rion_guess = max(Zreal)
+    if Rion_guess > Rsh_guess:
+        print("Unable to estimate Rion due to low shunt resistance")
+        return None
+    else:
+        return Rion_guess
 
-def get_Cion(w, imp_phase, C_g, Rion):
+def get_Rsh(Zreal, Rsh_guess):
     """
-    Returns the value of Cion given the phase spectra under 0V bias
-    Based on maximum point
+    For low shunt case
+    Gets Rsh from nyquist plot
     """
-    argZ_max_index = np.argmax(imp_phase)
-    wmax = w[argZ_max_index]
-    return 1 / (Rion * Rion * wmax * wmax * C_g) - C_g
+    if max(Zreal) > Rsh_guess:
+        return max(Zreal)
+    else:
+        return Rsh_guess
 
-def get_Cion_alt(w, imp_spectra_real, imp_spectra_imag, Rion):
-    """
-    Alternative method using impedance spectra under bias and
-    time constants
-    """
-    #using reused code frm Rn
-    peaks = find_peaks(imp_spectra_imag)[0]
-    #0th peak - first loop peak
-    #R inf is length to lowest point
-
-    #check for lowest point after 0th peak
-    RnO_index = np.argmin(imp_spectra_imag[peaks[0]+1:]) + peaks[0] - 1
-
-    #possible indices for Rninf (after peak of 1st semicircle to end on 2nd semicircle)
-    Rninf_indices = range(peaks[0]+1,RnO_index)
-
-    #look for peaks again
-    peaks = find_peaks(imp_spectra_real[Rninf_indices])[0]
-    
-    time_constant_index = peaks[1]
-    w_ion = w[time_constant_index]
-    Cion = 1 / Rion / w_ion
-    return Cion
-
-def get_Rn(imp_spectra_real, imp_spectra_imag, Rs):
+def get_Rn(Zreal, Zimag, Rs):
     """
     Returns value of Rn0 and Rninf under non-0V bias case
     Uses impedance spectra magnitude flats
     """
-    peaks = find_peaks(imp_spectra_imag)[0]
+    peaks = find_peaks(Zimag)[0]
     #0th peak - first loop peak
     #R inf is length to lowest point
 
     #check for lowest point after 0th peak
-    RnO_index = np.argmin(imp_spectra_imag[peaks[0]+1:]) + peaks[0] - 1
-    RnO = imp_spectra_real[RnO_index] - Rs
+    RnO_index = np.argmin(Zimag[peaks[0]+1:]) + peaks[0] - 1
+    RnO = Zreal[RnO_index] - Rs
 
     #possible indices for Rninf (after peak of 1st semicircle to end on 2nd semicircle)
     Rninf_indices = range(peaks[0]+1,RnO_index)
 
     #look for peaks again
-    peaks = find_peaks(imp_spectra_real[Rninf_indices])[0]
-    Rninf = imp_spectra_real[peaks[0]] - Rs
+    peaks = find_peaks(Zreal[Rninf_indices])[0]
+    Rninf = Zreal[peaks[0]] - Rs
 
     return RnO, Rninf
 
+def get_tconstant_nano(w, wion_bias, wg_bias):
+    """
+    Find time constant of nanoparticle bit
+    Returns a point between wion and wg cuz idk how to find the point systematically
+    """
+    wg_index = np.where(w==wg_bias)[0][0]
+    wion_index = np.where(w==wion_bias)[0][0]
+    wnano_index = (wg_index + wion_index) // 2
 
+    wnano = w[wnano_index]
+    return wnano
+
+#functions which calculate parameters values
+#should put in a different module
+def get_Cg(wg, Rsh, Rs, Rion):
+    """
+    Cg = 1 / ( wg * sqrt( Rsh * Rs ) ) if Rsh < Rion    LOW SHUNT
+    Cg = 1 / ( wg * sqrt( Rion * Rs ) ) if Rion > Rsh   HIGH SHUNT
+    """
+    if Rsh < Rion:
+        Cg = 1 / (wg * np.sqrt(Rsh * Rs))
+    else:
+        Cg = 1 / (wg * np.sqrt(Rion * Rs))
+
+    return Cg
+
+def get_Cg_Bias(wg, Cion, Rninf):
+    """
+    Under bias
+    wg = 1 / (Ceff * Rninf)
+    where Ceff = (1/Cion + 1/Cg )^-1
+    """
+    Cg = 1 / ( Rninf * wg - 1/Cion )
+    return Cg
+
+def get_Cion(wion, Rion):
+    """
+    wion = 1 / (Rion * Cion) under high bias (more than 1V)
+    Unaffected by Rsh even if Rsh < Rion for some reason
+    """
+    Cion = 1 / (Rion * wion)
+    return Cion
+
+def get_Rnano(w, Zreal, wnano, Rninf, Rs):
+    """
+    Guesses resistance of nanoparticle circuit
+    Rninf + Rs - Dist. to nanoparticle time constant
+    """
+    wnano_index = np.where(w==wnano)[0][0]
+    Rnano = Rninf + Rs - Zreal[wnano_index]
+    Rnano *= 2 #since the time constant is at half Rnano
+    return Rnano
+
+def get_Cnano(wnano, Rnano):
+    Cnano = 1 / (wnano * Rnano)
+    return Cnano
 
 if __name__ == "__main__":
-    data = np.loadtxt("test_data\\nyquist_dark.txt", skiprows=1)
+    #data = np.loadtxt("test_data\Pixel5ControlLightForwardsweep\\nyquist.txt", skiprows=1)
+    data = np.loadtxt("test_data\Pixel1NanoparticlesLightForwardsweep\\nyquist.txt", skiprows=1)
+    Zreal = data[:,2]
+    Zimag = data[:,3]
 
-    #plotting data
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    twin = ax2.twinx()
+    wg, wion = get_tconstants(data[:,1], Zreal, Zimag, bias=True)
+    wg_index = np.where(data[:,1]==wg)[0]
+    wion_index = np.where(data[:,1]==wion)[0]
 
-    # Rn0, Rninf = get_Rn(data[:,2], data[:,3])
-    # ax1.axvline(Rn0)
-    # ax1.axvline(Rninf)
-
-    ax1.plot(data[:,2], data[:,3], 'o', label="experimental impedance")
-    ax2.plot(data[:,1], abs(data[:,2] + 1j*data[:,3]), 'o', label="measured |Z|", color="midnightblue")
-    twin.plot(data[:,1], arg(data[:,2] - 1j*data[:,3]), 'o', label="measured argz", color="maroon")
-
-    ax1.set_title("Impedance spectra")
-    ax1.set_ylabel("-Z''")
-    ax1.set_xlabel("Z")
-    ax1.set_ylim(0,)
-
-    ax2.set_xscale('log')
-    ax2.set_yscale('log')
-    ax2.set_title("Resonance and bode plot")
-    ax2.set_ylabel("|Z|")
-    ax2.set_xlabel("w")
-
+    plt.plot(Zreal, Zimag, 'o')
+    plt.plot(Zreal[wg_index], Zimag[wg_index], 'x', markersize=10)
+    plt.plot(Zreal[wion_index], Zimag[wion_index], 'x', markersize=10)
     plt.show()
