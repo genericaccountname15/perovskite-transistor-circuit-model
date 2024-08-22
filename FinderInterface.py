@@ -226,20 +226,24 @@ def check_Rn(Rn0, Rninf, nyquist_data, Rs):
     Rn0_slider = Slider(ax = ax_Rn0_slider, label = "Rn0 index", valmin=0, valmax=len(w_data)-1, valinit=Rn0_index, valstep=1)
     Rninf_slider = Slider(ax = ax_Rninf_slider, label = "Rninf index", valmin=0, valmax=len(w_data)-1, valinit=Rninf_index, valstep=1)
 
+    Rn0_output = Rn0
+    Rninf_output = Rninf
+
     def update(val):
+        nonlocal Rn0_output, Rninf_output
+
         Rn0_imp.set_xdata([np.full_like(ybaka, impreal_data[Rn0_slider.val])])
         Rninf_imp.set_xdata([np.full_like(ybaka, impreal_data[Rninf_slider.val])])
 
         Rn0_mag.set_ydata([np.full_like(xbaka, mag_data[Rn0_slider.val])])
         Rninf_mag.set_ydata([np.full_like(xbaka, mag_data[Rninf_slider.val])])
 
+        #update output values
+        Rn0_output = impreal_data[Rn0_slider.val] - Rs
+        Rninf_output = impreal_data[Rninf_slider.val] - Rs
+
     Rn0_slider.on_changed(update)
     Rninf_slider.on_changed(update)
-
-    #output slider values
-    #remember to delete off Rs
-    Rn0_output = impreal_data[Rn0_slider.val] - Rs
-    Rninf_output = impreal_data[Rninf_slider.val] - Rs
 
 
     #axes styling

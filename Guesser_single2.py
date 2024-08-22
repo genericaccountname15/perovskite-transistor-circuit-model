@@ -36,6 +36,8 @@ def guesser(bias_data, nobias_data, IV_data, bias_voltage, kbt=4.1302114835e-21,
     if wnano is not None:
         Rnano = find.get_Rnano(bias_data[:,1], bias_data[:,2], wnano, Rninf, Rs)
         Cnano = find.get_Cnano(wnano, Rnano)
+        n = (spc.elementary_charge/kbt * (1 - Cion_bias/CA) * bias_voltage /
+          sps.lambertw(1/Js/(Rninf - Rnano) * (1 - Cion_bias/CA) * bias_voltage ).real) 
 
     if nanoparticles:
         param_list_bias = (CA_ratio, Cg_bias, Cion_bias, Rion, kbt, n, Js, bias_voltage, Rs, Rsh, Rnano, Cnano)

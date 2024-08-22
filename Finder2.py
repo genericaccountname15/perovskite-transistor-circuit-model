@@ -137,6 +137,7 @@ def get_Rnano(w, Zreal, wnano, Rninf, Rs):
     """
     wnano_index = np.where(w==wnano)[0][0]
     Rnano = Rninf + Rs - Zreal[wnano_index]
+    Rnano *= 2 #since the time constant is at half Rnano
     return Rnano
 
 def get_Cnano(wnano, Rnano):
