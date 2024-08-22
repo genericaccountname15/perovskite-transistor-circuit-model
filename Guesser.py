@@ -11,7 +11,7 @@ import cmath
 import scipy.constants as spc
 import scipy.special as sps
 
-import Finder2 as find
+import Finder as find
 from FinderInterface import Interface
 
 def guesser(bias_data, nobias_data, IV_data, bias_voltage, kbt=4.1302114835e-21, Js=2.31e-16, bias=True, nanoparticles=False, run_checker=True):

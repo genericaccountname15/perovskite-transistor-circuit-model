@@ -1,101 +1,114 @@
 """
-GUI for software
+Updated GUI for software using classes
 
 Timothy Chew
 22/8/24
 """
 
-import customtkinter
+import customtkinter as ctk
 import os
 
-customtkinter.set_appearance_mode('dark')
-customtkinter.set_default_color_theme('dark-blue')
+ctk.set_appearance_mode('dark')
+ctk.set_default_color_theme('dark-blue')
 
-#setting up app window
-app = customtkinter.CTk()
-app.geometry("500x300")
+class App(ctk.CTk):
+    """
+    GUI
+    Args:
+        req_data(list of str): list of datafiles/models required
+    """
+    def __init__(self, req_data=["model", "nyquistbias", "nyquistnobias", "IV", "OCP"]):
+        super().__init__()
 
-frame = customtkinter.CTkFrame(master=app)
-frame.pack(pady=20, padx=60, fill='both', expand=True)
+        #creating layout frame
+        self.title("Banana")
+        self.geometry("800x400")
+        self.frame = ctk.CTkFrame(self)
+        self.frame.pack(pady=20, padx=60, fill='both', expand=True)
 
-label = customtkinter.CTkLabel(master=frame, text="DONK")
-label.pack(pady=12, padx=10)
+        self.titlelabel = ctk.CTkLabel(master=self.frame, text="DONK")
+        self.titlelabel.pack(pady=12, padx=10)
 
-#button to select model
-def select_model():
-    path = customtkinter.filedialog.askdirectory(
-        initialdir = os.getcwd(), #working directory path
-        title="Select impedance model folder"
+        #generate buttons
+        model = file_selector(self.frame, "Select impedance model", self.select_folder)
+        nyquist_bias = file_selector(self.frame, "Select impedance data file", self.select_file)
+        nyquist_nobias = file_selector(self.frame, "Select 0V bias impedance data file", self.select_file)
+        IV_nobias = file_selector(self.frame, "Select IV data file", self.select_file)
+        OCP = file_selector(self.frame, "Select OCP data file", self.select_file)
+
+    def select_folder(self, title, path_label, file_selector):
+        """
+        Opens dialogue to select folder and writes filename to path_store
+        Args:
+            title: name of file diaglogue box
+            path_label(ctk label object)
+            file_selector(object): file selector object
+        """
+        path = ctk.filedialog.askdirectory(
+            initialdir=os.getcwd(),
+            title = title
         )
+
+        #change to relative path
+        path = os.path.relpath(path, start=os.getcwd())
+
+        #change label text
+        if path:
+            path_label.configure(text=path)
+        else:
+            path_label.configure(text="No file selected")
+        
+        file_selector.set_filename(path)
     
-    #change to relative path
-    path = os.path.relpath(path, start=os.getcwd())
-
-    if path:
-        model_path_label.configure(text=path)
-    else:
-        model_path_label.configure(text="No file selected")
-
-select_model_frame = customtkinter.CTkFrame(frame)
-select_model_frame.pack(pady=10, padx=10, fill='x')
-
-select_model_button = customtkinter.CTkButton(select_model_frame, text="Select impedance model folder", command=select_model)
-select_model_button.pack(side="left", padx=10)
-
-model_path_label = customtkinter.CTkLabel(select_model_frame, text="No file selected")
-model_path_label.pack(side="left", padx=10, expand=True)
-
-#button to select bias data file
-def select_data():
-    path = customtkinter.filedialog.askopenfilename(
-        initialdir = os.getcwd(), #working directory path
-        title="Select bias impedance data",
-        filetypes=[("Text Files", "*.txt")]
+    def select_file(self, title, file_label, file_selector):
+        path = ctk.filedialog.askopenfilename(
+            initialdir=os.getcwd(),
+            title=title,
+            filetypes=[("Text Files", "*.txt")]
         )
+
+        #change to relative path
+        path = os.path.relpath(path, start=os.getcwd())
+
+        #change label text
+        if path:
+            file_label.configure(text=path)
+        else:
+            file_label.configure(text="No file selected")
+        
+        file_selector.set_filename(path)
+
+class file_selector(App):
+    """
+    Generates a button and label for file selection
+    Args:
+        file_selector(function)
+    """
+    def __init__(self, frame, dialogue_text, file_selector):
+        self.file_selector = file_selector
+
+        #value storage
+        self._filename = None
+
+        #frame
+        self.button_label_frame = ctk.CTkFrame(frame)
+        self.button_label_frame.pack(pady=10, padx=10, fill="x")
+
+        #label
+        self.label = ctk.CTkLabel(self.button_label_frame, text="No file selected")
+        self.label.pack(side="right", padx=10, expand=True)
+
+        #button
+        self.button = ctk.CTkButton(self.button_label_frame, text=dialogue_text, 
+                                                 command=lambda: self.file_selector(dialogue_text, self.label, self))
+        self.button.pack(side="right", padx=10)
+
+    def filename(self):
+        return self._filename
     
-    #change to relative path
-    path = os.path.relpath(path, start=os.getcwd())
+    def set_filename(self, val):
+        self._filename = val
 
-    if path:
-        biasdata_path_label.configure(text=path)
-    else:
-        biasdata_path_label.configure(text="No file selected")
-
-select_bias_frame = customtkinter.CTkFrame(frame)
-select_bias_frame.pack(pady=10, padx=10, fill='x')
-
-select_biasdata_button = customtkinter.CTkButton(select_bias_frame, text="Select bias impedance data", command=select_data)
-select_biasdata_button.pack(side="left", padx=10)
-
-biasdata_path_label = customtkinter.CTkLabel(select_bias_frame, text="No file selected")
-biasdata_path_label.pack(side="left", padx=10, expand=True)
-
-#button to select bias data file
-def select_data_nobias():
-    path = customtkinter.filedialog.askopenfilename(
-        initialdir = os.getcwd(), #working directory path
-        title="Select no bias impedance file"
-        )
-    
-    #change to relative path
-    path = os.path.relpath(path, start=os.getcwd())
-
-    if path:
-        nobiasdata_path_label.configure(text=path)
-    else:
-        nobiasdata_path_label.configure(text="No file selected")
-
-select_nobias_frame = customtkinter.CTkFrame(frame)
-select_nobias_frame.pack(pady=10, padx=10, fill='x')
-
-select_nobiasdata_button = customtkinter.CTkButton(select_nobias_frame, text="Select 0V bias data folder", command=select_data_nobias)
-select_nobiasdata_button.pack(side="left", padx=10)
-
-nobiasdata_path_label = customtkinter.CTkLabel(select_nobias_frame, text="No file selected")
-nobiasdata_path_label.pack(side="left", padx=10, expand=True)
-
-#button to run the code
-# run_button = customtkinter.CTkButton(frame, text="Run", command=run)
-# run_button.pack(pady=10, padx=10)
-
-app.mainloop()
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()

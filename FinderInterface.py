@@ -7,7 +7,7 @@ Timothy Chew
 
 import numpy as np
 import matplotlib.pyplot as plt
-import Finder2 as find
+import Finder as find
 
 from matplotlib.widgets import Slider
 from Axes_generator import gen_axes

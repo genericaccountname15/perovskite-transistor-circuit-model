@@ -9,7 +9,7 @@ Timothy Chew
 import numpy as np
 from scipy.optimize import curve_fit
 
-from Guesser_single2 import guesser
+from Guesser import guesser
 
 
 def fit_leastsq(Z, bias_data, nobias_data, IV_data, bias_voltage, run_checker, bias, fixed_params_indices = [], fixed_params_values = []):
