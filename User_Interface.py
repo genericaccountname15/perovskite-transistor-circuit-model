@@ -17,7 +17,7 @@ class App(ctk.CTk):
     Args:
         req_data(list of str): list of datafiles/models required
     """
-    def __init__(self, req_data=["model", "nyquistbias", "nyquistnobias", "IV", "OCP"]):
+    def __init__(self):
         super().__init__()
 
         #creating layout frame

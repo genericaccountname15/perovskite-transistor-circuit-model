@@ -14,7 +14,7 @@ import scipy.special as sps
 import Finder as find
 from FinderInterface import Interface
 
-def guesser(bias_data, nobias_data, IV_data, bias_voltage, kbt=4.1302114835e-21, Js=2.31e-16, bias=True, nanoparticles=False, run_checker=True):
+def param_guesser(bias_data, nobias_data, IV_data, bias_voltage, kbt=4.1302114835e-21, Js=2.31e-16, bias=True, nanoparticles=False, run_checker=True):
     #unpacking
 
     Rion, Rsh, Rs, Rn0, Rninf, wg_bias, wg_nobias, wion_bias, wion_nobias, wnano = Interface(bias_data, nobias_data, IV_data, run_checker=run_checker, nanoparticle=nanoparticles)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     nobias_data = np.loadtxt("test_data/nyquist2_dark.txt", skiprows=1)
     bias_voltage = 1.023
 
-    plist = guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=False, bias=True, nanoparticles=True)
+    plist = param_guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=False, bias=True, nanoparticles=True)
 
     from nanoparticles_model.Impedancefunction import Z
     from Plotter import plotter

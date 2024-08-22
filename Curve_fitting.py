@@ -9,7 +9,7 @@ Timothy Chew
 import numpy as np
 from scipy.optimize import curve_fit
 
-from Guesser import guesser
+from Guesser import param_guesser
 
 
 def fit_leastsq(Z, bias_data, nobias_data, IV_data, bias_voltage, run_checker, bias, fixed_params_indices = [], fixed_params_values = []):
@@ -19,7 +19,7 @@ def fit_leastsq(Z, bias_data, nobias_data, IV_data, bias_voltage, run_checker, b
         fixed_params_indices: indices of parameters to fix
         fixed_params_values: values of parameters to fix
     """
-    plist_guess = list(guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=run_checker, bias=bias))
+    plist_guess = list(param_guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=run_checker, bias=bias))
 
     #set fixed params
     if len(fixed_params_indices) != 0:
