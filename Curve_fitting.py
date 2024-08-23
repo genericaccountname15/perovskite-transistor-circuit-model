@@ -12,13 +12,15 @@ from scipy.optimize import curve_fit
 from Guesser import param_guesser
 
 
-def fit_leastsq(Z, bias_data, nobias_data, IV_data, bias_voltage, run_checker, bias, fixed_params_indices = [], fixed_params_values = []):
+def fit_leastsq(Z, bias_data, nobias_data, IV_data=None, bias_voltage=None, run_checker=False, bias=True, fixed_params_indices = [], fixed_params_values = []):
     """
     Performs a least square fit to data using scipy curve_fit function
     Args:
         fixed_params_indices: indices of parameters to fix
         fixed_params_values: values of parameters to fix
     """
+    if bias_voltage is None:
+        bias_voltage = float(input("Please enter bias voltage value (V): "))
     plist_guess = list(param_guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=run_checker, bias=bias))
 
     #set fixed params

@@ -8,6 +8,8 @@ Timothy Chew
 import customtkinter as ctk
 import os
 
+from Impedance_fitting import imp_fitting
+
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
 
@@ -21,20 +23,38 @@ class App(ctk.CTk):
         super().__init__()
 
         #creating layout frame
-        self.title("Banana")
-        self.geometry("800x400")
+        self.title("File Selection")
+        self.geometry("800x500")
         self.frame = ctk.CTkFrame(self)
         self.frame.pack(pady=20, padx=60, fill='both', expand=True)
 
-        self.titlelabel = ctk.CTkLabel(master=self.frame, text="DONK")
+        self.titlelabel = ctk.CTkLabel(master=self.frame, text="File selection")
         self.titlelabel.pack(pady=12, padx=10)
 
-        #generate buttons
-        model = file_selector(self.frame, "Select impedance model", self.select_folder)
-        nyquist_bias = file_selector(self.frame, "Select impedance data file", self.select_file)
-        nyquist_nobias = file_selector(self.frame, "Select 0V bias impedance data file", self.select_file)
-        IV_nobias = file_selector(self.frame, "Select IV data file", self.select_file)
-        OCP = file_selector(self.frame, "Select OCP data file", self.select_file)
+        #generate file selector buttons
+        self.model = file_selector(self.frame, "Select impedance model", self.select_folder)
+        self.nyquist_bias = file_selector(self.frame, "Select impedance data file", self.select_file)
+        self.nyquist_nobias = file_selector(self.frame, "Select 0V bias impedance data file", self.select_file)
+        self.IV = file_selector(self.frame, "Select IV data file", self.select_file)
+        self.OCP = file_selector(self.frame, "Select OCP data file", self.select_file)
+
+        #main bit of UI
+        self.mainframe = ctk.CTkFrame(self.frame)
+        self.mainframe.pack(pady=10, padx=10, fill="x")
+
+        #button to run software
+        self.run = ctk.CTkButton(self.mainframe, text="Run Software", command=self.run_software)
+        self.run.pack(padx=10)
+
+        #button to check if under bias
+        self.bias = False
+        self.biasbutton = ctk.CTkCheckBox(self.mainframe, text="Under Bias", command=self.update_bias)
+        self.biasbutton.pack(side="right", padx=10)
+
+        #button to see if we want to run checker
+        self.runchecker = False
+        self.runcheckerbutton = ctk.CTkCheckBox(self.mainframe, text="Run Checker", command=self.update_runchecker)
+        self.runcheckerbutton.pack(side="left", padx=10)
 
     def select_folder(self, title, path_label, file_selector):
         """
@@ -78,6 +98,23 @@ class App(ctk.CTk):
         
         file_selector.set_filename(path)
 
+    def run_software(self):
+        print (self.bias)
+        imp_fitting(self.model.filename(), self.nyquist_bias.filename(), self.nyquist_nobias.filename(), self.IV.filename(), self.OCP.filename(),
+                    bias=self.bias, run_checker=self.runchecker)
+
+    def update_bias(self):
+        if self.bias:
+            self.bias = False
+        else:
+            self.bias = True
+    
+    def update_runchecker(self):
+        if self.runchecker:
+            self.runchecker = False
+        else:
+            self.runchecker = True
+
 class file_selector(App):
     """
     Generates a button and label for file selection
@@ -108,6 +145,8 @@ class file_selector(App):
     
     def set_filename(self, val):
         self._filename = val
+
+
 
 if __name__ == "__main__":
     app = App()
