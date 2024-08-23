@@ -8,7 +8,7 @@ Timothy Chew
 import customtkinter as ctk
 import os
 
-from Impedance_fitting import imp_fitting
+from software_main import imp_fitting
 
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
@@ -69,11 +69,10 @@ class App(ctk.CTk):
             title = title
         )
 
-        #change to relative path
-        path = os.path.relpath(path, start=os.getcwd())
-
         #change label text
-        if path:
+        if path:            
+            #change to relative path
+            path = os.path.relpath(path, start=os.getcwd())
             path_label.configure(text=path)
         else:
             path_label.configure(text="No file selected")
@@ -87,11 +86,10 @@ class App(ctk.CTk):
             filetypes=[("Text Files", "*.txt")]
         )
 
-        #change to relative path
-        path = os.path.relpath(path, start=os.getcwd())
-
         #change label text
         if path:
+            #change to relative path
+            path = os.path.relpath(path, start=os.getcwd())
             file_label.configure(text=path)
         else:
             file_label.configure(text="No file selected")
@@ -99,8 +97,13 @@ class App(ctk.CTk):
         file_selector.set_filename(path)
 
     def run_software(self):
-        print (self.bias)
-        imp_fitting(self.model.filename(), self.nyquist_bias.filename(), self.nyquist_nobias.filename(), self.IV.filename(), self.OCP.filename(),
+        #checks
+        if self.model.filename() is None:
+            print("No Model selected!")
+        elif self.nyquist_bias.filename() is None:
+            print("No datafile selected!")
+        else:
+            imp_fitting(self.model.filename(), self.nyquist_bias.filename(), self.nyquist_nobias.filename(), self.IV.filename(), self.OCP.filename(),
                     bias=self.bias, run_checker=self.runchecker)
 
     def update_bias(self):

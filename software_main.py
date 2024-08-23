@@ -12,6 +12,7 @@ import importlib.util
 
 from Plotter import plotter
 from Curve_fitting import fit_leastsq
+from output_plist import output_params
 
 def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bias, run_checker):
     """
@@ -28,6 +29,12 @@ def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bi
     spec.loader.exec_module(module)
     Z = getattr(module, "Z", None)
 
+    #importing associated initial parameters
+    init_paramfilename = imp_model_folder+"\Initial_params.csv"
+    nano = False
+    if imp_model_folder == "nanoparticles_model":
+        nano = True
+
     #loading data
     data = np.loadtxt(datafile, skiprows=1)
 
@@ -43,12 +50,16 @@ def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bi
     
     if OCPfile is not None:
         biasvoltage = pd.read_csv(OCPfile, sep="\t", header=0).values[0,5]
+    else:
+        biasvoltage = float(input("Please enter bias voltage value (V): "))
 
     #running fit
-    plist_fitted = fit_leastsq(Z, data, nobias_data, IVdata, biasvoltage, bias=bias, 
+    plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
                                run_checker=run_checker, fixed_params_indices=[7], fixed_params_values=[biasvoltage])
 
-    plotter(Z, "single_transistor_model\Initial_params.csv", data, plist_fitted)
+    plotter(Z, init_paramfilename, data, plist_fitted)
+
+    output_params(init_paramfilename, plist_fitted)
 
 
 if __name__ == "__main__":
@@ -58,4 +69,4 @@ if __name__ == "__main__":
     IVfile = "test_data\Pixel5ControlLightForwardsweep\CVafter.txt"
     OCPfile = "test_data\Pixel5ControlLightForwardsweep\OCP.txt"
 
-    imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile)
+    imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile=IVfile, OCPfile=OCPfile, bias=True, run_checker=False)
