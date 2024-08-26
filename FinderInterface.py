@@ -16,8 +16,13 @@ def Interface(bias_data, nobias_data=None, IV_data=None, nanoparticle=False, run
     """
     Plots things and checks for things
     Args:
-        nanoparticles (bool): whether to check for a nanoparticle time constant
-        run_checker (bool): whether to run the checker for obtained features
+        bias_data (array): Impedance data taken under bias
+        nobias_data (array or None): Impedance data taken under 0V no bias
+        IV_data (array or None): Current-Voltage data
+        nanoparticle (boolean): Whether to check for a nanoparticle time constant
+        run_checker (boolean): Whether to run the checker for obtained features
+    Returns:
+        features (tuple): Tuple of graphical features e.g.: time constants
     """
     #unpacking data
     bias_w = bias_data[:,1]
@@ -66,7 +71,17 @@ def Interface(bias_data, nobias_data=None, IV_data=None, nanoparticle=False, run
 def check_tconstants(wg, wion, nyquist_data, wnano=None):
     """
     Checks the time constants wion and wg
+    Opens window to adjust time constant selection over datafile
     Accepts both bias and non bias cases
+    Args:
+        wg (float): Guess for Cg time constant from Finder module
+        wion (float): Guess for Cion time constant from Finder module
+        nyquist_data (array): Impedance data
+        wnano (float or None): Guess for Cnano time constant from Finder module
+    Returns:
+        wg_output (float): Checked Cg time constant
+        wion_output (float): Checked Cion time constant
+        wnano_output (float): Checked Cnano time constant
     """
     fig, (ax1, ax2) = plt.subplots(1, 2)
     twin = ax2.twinx()
@@ -190,6 +205,14 @@ def check_Rn(Rn0, Rninf, nyquist_data, Rs):
     """
     Checks Rn0 and Rninf guesses
     Accepts only bias data
+    Args:
+        Rn0 (float): Width of nyquist spectra under bias from Finder module
+        Rninf (float): Width of first loop of nyquist spectra under bias from Finder module
+        nyquist_data (array): Impedance data
+        Rs (float): Series resistance
+    Returns:
+        Rn0_output (float): Checked Rn0 resistance
+        Rninf_output (float): Checked Rninf resistance
     """
     #plotting data
     fig, (ax1, ax2) = plt.subplots(1, 2)

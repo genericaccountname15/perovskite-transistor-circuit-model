@@ -19,18 +19,18 @@ def param_guesser(bias_data, nobias_data, IV_data, bias_voltage, kbt=4.130211483
     """
     Calculates parameter guess values from features found from Finder module
     Args:
-        bias_data (array):
-        nobias_data (array):
-        IV_data (array or None):
-        bias_voltage (float):
-        kbt (float): 
-        Js (float):
-        bias (boolean):
-        nanoparticles (boolean):
-        run_checker (boolean):
+        bias_data (array): Impedance data taken under bias
+        nobias_data (array): Impedance data taken under 0V no bias
+        IV_data (array or None): Current-Voltage data
+        bias_voltage (float): Voltage under which bias_data was taken
+        kbt (float): Boltzmann constant times temperature
+        Js (float): Saturation current of material
+        bias (boolean): Whether we are intrested in the bias or nonbias fit parameters
+        nanoparticles (boolean): Whether to check for a nanoparticle time constant
+        run_checker (boolean): Whether to run the checker for obtained features
     Returns:
-        param_list_bias (tuple, if bias):
-        param_list_nobias (tuple, if no bias):
+        param_list_bias (tuple, if bias): List of parameters for bias data set
+        param_list_nobias (tuple, if no bias): List of parameters for no bias data set
     """
 
     #unpacking variables

@@ -10,6 +10,14 @@ import pandas as pd
 from tabulate import tabulate
 
 def output_params(init_paramfilename, plist):
+    """
+    Outputs list of parameters using tabulate module
+    Args:
+        init_paramfilename (string): Filename of init_params.csv under model folder
+        plist (tuple): list of parameters to output
+    Returns:
+        tabulate object containing parameter names and values
+    """
     output_array = []
     param_names = pd.read_csv(init_paramfilename, delimiter=",").values[:,0]
 

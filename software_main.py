@@ -17,8 +17,17 @@ from output_plist import output_params
 def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bias, run_checker):
     """
     Performs fitting operations
+    Combines functionality of plotter, Curve_fitting, and output_plist modules
     Args:
-        (Args are string filenames)
+        imp_model_folder (string): name of folder containing the impedance model
+        datafile (string): name of file containing impedance bias data
+        nobias_datafile (string): name of file containing impedance data under 0V bias
+        IVfile (string or None): name of file containing current-voltage data
+        OCP file (string or None): name of file containing OCP data
+        bias (boolean): Whether to investigate the bias or no bias data file
+        run_checker (boolean): Whether to run the checker FinderInterface
+    Returns:
+        Tabulate object containing parameter names and values
     """
     #importing function
     spec = importlib.util.spec_from_file_location("Impedancefunction.py", imp_model_folder+"/Impedancefunction.py")

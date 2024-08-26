@@ -17,6 +17,19 @@ def arg(z):
     return np.arctan2(z.imag, z.real)
 
 def plotter(Z, initparams_filename, data, guess_params=None):
+    """
+    Plots impedance function and data with interactive sliders and buttons
+    I'm not even gonna try to document this
+    This whole thing is pure spaghetti
+    Args:
+        Z (function): Impedance function which returns complex impedance 
+                        given initial parameters and angular frequency
+        initparams_filename (string): Filename of init_params.csv under model folder
+        data (array): Impedance data
+        guess_params (tuple or None): Guess parameters, if None use init_params.csv initial values
+    Returns:
+        plist_output (tuple): Output parameters based on slider values
+    """
     global logscale
     df = pd.read_csv(initparams_filename, delimiter=",")
     init_params = df.values

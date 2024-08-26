@@ -9,7 +9,7 @@ Timothy Chew
 def gen_axes(param_list):
     """
     Generates arrays of axes positions which occupies
-    box with edges [(0.07, 0.05) (0.07, 0.15) (0.82, 0.15) (0.82, 0.05)]
+    box with edges: [(0.07, 0.05) (0.07, 0.15) (0.82, 0.15) (0.82, 0.05)]
     Args:
         param_list: list of parameters
     Returns:

@@ -12,6 +12,12 @@ from scipy.signal import find_peaks
 def get_Rsh_IV(I, V, scan_range=150):
     """
     Finds shunt resistance from gradient of IV curve
+    Args:
+        I (array): Current data
+        V (array): Voltage data
+        scan_range: Initial "flat" portion of data where I = generated photocurrent
+    Returns:
+        Inverse gradient of IV graph, an estimate of Rsh
     """
     #get gradient using polyfit
     ydata = V[0:scan_range]
@@ -22,6 +28,14 @@ def get_Rsh_IV(I, V, scan_range=150):
 def get_tconstants(w, Zreal, Zimag, bias=False):
     """
     Finds frequency values of loop's time constants
+    Args:
+        w (array): Angular frequency data
+        Zreal (array): Real part of nyquist impedance spectra
+        Zimag (array): Imaginary part of nyquist impedance spectra
+        bias (boolean): Whether the system is under bias when data was collected
+    Returns:
+        wg_guess (float): Angular frequency of wg time constant 
+        wion_guess (float): Angular frequency of wion time constant
     """
     phase = np.arctan2(-Zimag, Zreal)
     peaks = find_peaks(-phase)[0]
@@ -36,6 +50,12 @@ def get_Rs_alt(Zreal, Zimag):
     """
     Alternative method of finding Rs
     Uses impedance spectra under non 0V bias
+    Linear fit to find x-intercept
+    Args:
+        Zreal (array): Real part of nyquist impedance spectra under bias
+        Zimag (array): Imaginary part of nyquist impedance spectra under bias
+    Returns:
+        Estimate for Rs, left x-intercept nyquist plot
     """
     grad = Zimag[1] - Zimag[0] / (Zreal[1] - Zreal[0])
     #solving for x when y=0 in y - y1 = m(x - x1)
@@ -46,7 +66,12 @@ def get_Rion(Zreal, Rsh_guess):
     """
     Returns the value of Rion given an impedance spectra's real values
     Takes the max of the real values (semicircle width)
-    If shunt is low, return None
+    Args:
+        Zreal (array): Real part of nyquist impedance spectra under 0V bias
+        Rsh_guess (float): Guessed Rsh from Current-Voltage data
+    Returns:
+        Guess for Rion, 
+        if shunt is low return none
     """
     Rion_guess = max(Zreal)
     if Rion_guess > Rsh_guess:
@@ -59,6 +84,11 @@ def get_Rsh(Zreal, Rsh_guess):
     """
     For low shunt case
     Gets Rsh from nyquist plot
+    Args:
+        Zreal (array): Real part of nyquist impedance spectra under 0V bias
+        Rsh_guess (float): Guessed Rsh from Current-Voltage data
+    Return:
+        Guess for shunt resistance
     """
     if max(Zreal) > Rsh_guess:
         return max(Zreal)
@@ -69,6 +99,13 @@ def get_Rn(Zreal, Zimag, Rs):
     """
     Returns value of Rn0 and Rninf under non-0V bias case
     Uses impedance spectra magnitude flats
+    Args:
+        Zreal (array): Real part of nyquist impedance spectra under bias
+        Zimag (array): Imaginary part of nyquist impedance spectra under bias
+        Rs (float): Series resistance
+    Returns:
+        Rn0 (float): Width of nyquist spectra under bias
+        Rninf (float): Width of first loop of nyquist spectra under bias
     """
     peaks = find_peaks(Zimag)[0]
     #0th peak - first loop peak
@@ -89,8 +126,14 @@ def get_Rn(Zreal, Zimag, Rs):
 
 def get_tconstant_nano(w, wion_bias, wg_bias):
     """
-    Find time constant of nanoparticle bit
+    Finds time constant of nanoparticle bit
     Returns a point between wion and wg cuz idk how to find the point systematically
+    Args:
+        w (array): Angular frequency data
+        wion_bias (float): Guess for wion time constant
+        wg_bias (float): Guess for wg time constant
+    Returns:
+        wnano (float): Guess for nanoparticle time constant angular frequency
     """
     wg_index = np.where(w==wg_bias)[0][0]
     wion_index = np.where(w==wion_bias)[0][0]
@@ -103,8 +146,16 @@ def get_tconstant_nano(w, wion_bias, wg_bias):
 #should put in a different module
 def get_Cg(wg, Rsh, Rs, Rion):
     """
+    Calculates geometric capacitance under 0V
     Cg = 1 / ( wg * sqrt( Rsh * Rs ) ) if Rsh < Rion    LOW SHUNT
     Cg = 1 / ( wg * sqrt( Rion * Rs ) ) if Rion > Rsh   HIGH SHUNT
+    Args:
+        wg (float): Time constant for Cg
+        Rsh (float): Shunt resistance
+        Rs (float): Series resistance
+        Rion (float): Ionic resistance
+    Returns:
+        Cg (float): Guess of geometric capacitance
     """
     if Rsh < Rion:
         Cg = 1 / (wg * np.sqrt(Rsh * Rs))
@@ -115,17 +166,29 @@ def get_Cg(wg, Rsh, Rs, Rion):
 
 def get_Cg_Bias(wg, Cion, Rninf):
     """
-    Under bias
+    Calculates geometric capacitance under bias
     wg = 1 / (Ceff * Rninf)
     where Ceff = (1/Cion + 1/Cg )^-1
+    Args:
+        wg (float): Time constant for Cg
+        Cion (float): Ionic capacitance
+        Rninf (float): Width of first loop of nyquist spectra under bias
+    Returns:
+        Cg (float): Guess for geometric capacitance
     """
     Cg = 1 / ( Rninf * wg - 1/Cion )
     return Cg
 
 def get_Cion(wion, Rion):
     """
+    Calculats ionic capacitance under bias
     wion = 1 / (Rion * Cion) under high bias (more than 1V)
     Unaffected by Rsh even if Rsh < Rion for some reason
+    Args:
+        wion (float): Time constant for Cion
+        Rion (float): Ionic resistance
+    Returns:
+        Cion: Guess for ionic capacitance
     """
     Cion = 1 / (Rion * wion)
     return Cion
@@ -134,6 +197,14 @@ def get_Rnano(w, Zreal, wnano, Rninf, Rs):
     """
     Guesses resistance of nanoparticle circuit
     Rninf + Rs - Dist. to nanoparticle time constant
+    Args:
+        w (array): Angular frequency data under bias
+        Zreal (array): Real part of impedance under bias
+        wnano (float): Time constant for nanoparticle circuit
+        Rninf (float): Width of first loop of nyquist spectra under bias
+        Rs (float): Series resistance
+    Returns:
+        Rnano (float): Resistance of nanoparticle branch
     """
     wnano_index = np.where(w==wnano)[0][0]
     Rnano = Rninf + Rs - Zreal[wnano_index]
@@ -141,6 +212,14 @@ def get_Rnano(w, Zreal, wnano, Rninf, Rs):
     return Rnano
 
 def get_Cnano(wnano, Rnano):
+    """
+    Guesses capacitance of nanoparticle circuit
+    Args:
+        wnano (float): Time constant of nanoparticle circuit
+        Rnano (float): Resistance of nanoparticle circuit
+    Returns:
+        Cnano (float): Capacitance of nanoparticle circuit
+    """
     Cnano = 1 / (wnano * Rnano)
     return Cnano
 
