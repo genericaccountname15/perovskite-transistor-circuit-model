@@ -44,16 +44,18 @@ def plotter(Z, initparams_filename, data, guess_params=None):
     fig, (ax1, ax2) = plt.subplots(1, 2)
     twin = ax2.twinx()
 
-    line1, = ax1.plot(Z(w, *init_values).real, 
-                    -1*Z(w, *init_values).imag, 
+    Z_model_values = Z(w, *init_values)
+
+    line1, = ax1.plot(Z_model_values.real, 
+                    -1*Z_model_values.imag, 
                     label="model impedance")
 
-    line2, = ax2.plot(w, abs(Z(w, *init_values)), label="model |Z|", color="blue")
-    line3, = twin.plot(w, arg(Z(w, *init_values)), label="model arg(Z)", color="red")
+    line2, = ax2.plot(w, abs(Z_model_values), label="model |Z|", color="blue")
+    line3, = twin.plot(w, arg(Z_model_values), label="model arg(Z)", color="red")
 
-    line2a, = ax2.plot(w, Z(w, *init_values).real, label="model Z'", color="green", visible=False)
-    line2b, = ax2.plot(w, -1*Z(w, *init_values).imag, label = 'model -Z"', color="purple", visible=False)
-    line2c, = ax2.plot(w, (-1/(Z(w, *init_values)).imag * 1/w), label = "model capacitance", color="orange", visible=False)
+    line2a, = ax2.plot(w, Z_model_values.real, label="model Z'", color="green", visible=False)
+    line2b, = ax2.plot(w, -1*Z_model_values.imag, label = 'model -Z"', color="purple", visible=False)
+    line2c, = ax2.plot(w, -1/(Z_model_values.imag * w), label = "model capacitance", color="orange", visible=False)
 
     lines_by_labels = {l.get_label(): l for l in [line2, line2a,line2b,line2c]}
     line_colors = [l.get_color() for l in lines_by_labels.values()]
@@ -63,7 +65,7 @@ def plotter(Z, initparams_filename, data, guess_params=None):
 
     #generate axes positions of sliders
     axes_pos, button_pos = gen_axes(init_values)
-    ax_storage = [0.1, 0.9, 0.07, 0.03] #hidden slider location
+    ax_storage = [10, 10, 10, 10] #hidden slider location
 
     #generate sliders
     sliders = [] #array of slider objects
@@ -162,12 +164,15 @@ def plotter(Z, initparams_filename, data, guess_params=None):
         twin.set_xlim(min(line3.get_xdata()) * (1-padding), max(line3.get_xdata()) * (1+padding))
         twin.set_ylim(min(line3.get_ydata()) * (1+padding), max(line3.get_ydata()) * (1-padding))
 
+        Z_values_updated = Z(w, *param_list_updated)
+        line1.set_xdata(Z_values_updated.real)
+        line1.set_ydata(-1*Z_values_updated.imag)
+        line2.set_ydata(abs(Z_values_updated))
+        line3.set_ydata(arg(Z_values_updated))
 
-        line1.set_xdata(Z(w, *param_list_updated).real)
-        line1.set_ydata(-1*Z(w, *param_list_updated).imag)
-        line2.set_ydata(abs(Z(w, *param_list_updated)))
-        line3.set_ydata(arg(Z(w, *param_list_updated)))
-        fig.canvas.draw_idle()
+        line2a.set_ydata(Z_values_updated.real)
+        line2b.set_ydata(-1*Z_values_updated.imag)
+        line2c.set_ydata(-1/Z_values_updated.imag * 1/w)
 
     #call on sliders when moved
     for slider in sliders:
@@ -194,6 +199,22 @@ def plotter(Z, initparams_filename, data, guess_params=None):
                 log_slider.reset()
     reset_button.on_clicked(reset)
 
+    #plot data
+    if data is not None:
+        Z_data = data[:,2] - 1j*data[:,3]
+        w_data = data[:,1]
+
+        ax1.plot(Z_data.real, -1*Z_data.imag, 'o', label="Impedance")
+        dline, = ax2.plot(w_data, abs(Z_data), 'o', label="|Z|", color="midnightblue")
+        twin.plot(w_data, arg(Z_data), 'o', label="Argz", color="maroon")
+        
+        dlinea, = ax2.plot(w_data, Z_data.real, 'o', label="Z'", color="darkgreen", visible=False)
+        dlineb, = ax2.plot(w_data,-1*Z_data.imag, 'o', label="-Z''", color="indigo", visible=False)
+        dlinec, = ax2.plot(w_data, -1/(Z_data.imag * w_data), 'o', label = "effective capacitance", color="tomato", visible=False)
+
+        dlines_by_labels = {l.get_label(): l for l in [dline, dlinea, dlineb, dlinec]}
+
+
     #Checkboxes
     plots_ax = fig.add_axes([0, 0.5, 0.12, 0.1])
     plots_check = CheckButtons(ax = plots_ax, 
@@ -209,19 +230,31 @@ def plotter(Z, initparams_filename, data, guess_params=None):
         ln.set_visible(not ln.get_visible())
         ln.figure.canvas.draw_idle()
 
+        if data is not None:
+            data_dict = {
+                "model |Z|": "|Z|",
+                "model Z'": "Z'",
+                'model -Z"': "-Z''",
+                "model capacitance": "effective capacitance"
+            }
+
+            dln = dlines_by_labels[data_dict[label]]
+            dln.set_visible(not dln.get_visible())
+            dln.figure.canvas.draw_idle()
+        
+        visible_lines = np.concatenate((
+            [line for line in [line2, line2a, line2b, line2c] if line.get_visible()],
+            [line for line in [dline, dlinea, dlineb, dlinec] if line.get_visible()]))
+        visible_labels = [line.get_label() for line in visible_lines]
+
+        ax2.legend(visible_lines, visible_labels, loc="upper right")
+
         #change limits
         padding = 0.1
         ax2.set_xlim(min(ln.get_xdata()) * (1-padding), max(ln.get_xdata()) * (1+padding))
         ax2.set_ylim(min(ln.get_ydata()) * (1-padding), max(ln.get_ydata()) * (1+padding))
 
     plots_check.on_clicked(display_plots)
-
-
-    #plot data
-    if data is not None:
-        ax1.plot(data[:,2], data[:,3], 'o', label="experimental impedance")
-        ax2.plot(data[:,1], abs(data[:,2] + 1j*data[:,3]), 'o', label="measured |Z|", color="midnightblue")
-        twin.plot(data[:,1], arg(data[:,2] - 1j*data[:,3]), 'o', label="measured argz", color="maroon")
 
     #making graphs pretty
     fig.suptitle("Ionic-electronic model")
@@ -245,6 +278,10 @@ def plotter(Z, initparams_filename, data, guess_params=None):
     ax2.set_ylim(min(line2.get_ydata()) * (1-padding), max(line2.get_ydata()) * (1+padding))
     twin.set_xlim(min(line3.get_xdata()) * (1-padding), max(line3.get_xdata()) * (1+padding))
     twin.set_ylim(min(line3.get_ydata()) * (1+padding), max(line3.get_ydata()) * (1-padding))
+
+    ax1.legend()
+    ax2.legend([line2, dline], ["model |Z|", "|Z|"], loc="upper right")
+    twin.legend(loc="upper left")
 
     plt.show()
 
