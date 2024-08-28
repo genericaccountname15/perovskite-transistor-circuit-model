@@ -36,6 +36,8 @@ def fit_leastsq(Z, bias_data, nobias_data, bias_voltage, IV_data=None, run_check
 
     plist_guess = list(param_guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=run_checker, bias=bias, nanoparticles=nanoparticles))
 
+    print(plist_guess)
+
     #set fixed params
     if len(fixed_params_indices) != 0:
         for i, index in enumerate(fixed_params_indices):

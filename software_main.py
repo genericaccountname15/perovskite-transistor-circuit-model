@@ -63,10 +63,14 @@ def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bi
         biasvoltage = float(input("Please enter bias voltage value (V): "))
 
     #running fit
-    plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
-                               run_checker=run_checker, fixed_params_indices=[7], fixed_params_values=[biasvoltage])
-
-    plotter(Z, init_paramfilename, data, plist_fitted)
+    if bias:
+        plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
+                                run_checker=run_checker, fixed_params_indices=[7], fixed_params_values=[biasvoltage])
+        plotter(Z, init_paramfilename, data, plist_fitted)
+    else:
+        plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
+                                run_checker=run_checker)
+        plotter(Z, init_paramfilename, nobias_data, plist_fitted)
 
     output_params(init_paramfilename, plist_fitted)
 
