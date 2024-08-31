@@ -18,6 +18,10 @@ The following modules may have to be downloaded in advance: numpy, matplotlib, s
 ![image](https://github.com/user-attachments/assets/a762b427-384b-481b-ba4b-de4053b17362)
 _Diagram of user interface. Note that the "Run Checker checkbox" only works for the built-in models._
 
+![image](https://github.com/user-attachments/assets/7e0da79e-12c3-4097-947a-92816cdf4de3)
+_Checker UI, move sliders to select data points which corresponds to the time constants_
+
+
 
 ## Data formatting
 Imported data files are to be in .csv format in the following format:
@@ -46,8 +50,24 @@ Imported models require:
 
 _Format of Initial_params.csv_
 
+## Additional information on test data files
+Device description: ITO/NiOx/SAM(HTL)/CsFAPb(IxBr1-x)3/PCBM/BCP/Ag <br/>
+013: Reference device <br/>
+004: alumina nanoparticle device, nanoparticles inserted at pero/PCBM interface
 
-## Example use
+## Example plotting and fitting
+![image](https://github.com/user-attachments/assets/35abc4db-be66-4d8b-9a64-f58e2c5f2a30)
+_013Pixel7 with 0V bias at OCP using single transistor model_
+
+![image](https://github.com/user-attachments/assets/1a326cb5-4214-4d34-9fa9-c5669a478556)
+_013Pixel5 with 1.03V bias at OCP using single transistor model_
+
+![image](https://github.com/user-attachments/assets/6a75ce65-d7f5-4aac-88c8-8cdb114aa4d7)
+_008Pixel7 (nanoparticles) with 963mV bias at OCP using nanoparticle model_
+
+![image](https://github.com/user-attachments/assets/2f9f2d99-6300-4680-84da-8799f3724b3a)
+_Same nanoparticle plot displaying other plots: real and imaginary parts; capacitance; magnitude_
+
 
 ## References
 1) 	Energy Environ. Sci., 2019,12, 1296-1308. Ionic-to-electronic current amplification in hybrid perovskite solar cells: ionically gated transistor-interface circuit model explains hysteresis and impedance of mixed conducting devices. Available at: https://pubs.rsc.org/en/content/articlelanding/2019/ee/c8ee02362j
