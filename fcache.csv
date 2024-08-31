@@ -1,6 +1,6 @@
 prompt,filename
-impedance model,No File Selected
-impedance data file,No File Selected
-0V impedance data file,No File Selected
-IV data file,No File Selected
-OCP data file,No File Selected
+impedance model,single_transistor_model
+impedance data file,test_data\nyquist.txt
+0V impedance data file,test_data\nyquist_dark.txt
+IV data file,test_data\Pixel5ControlLightForwardsweep\CVafter.txt
+OCP data file,test_data\Pixel5ControlLightForwardsweep\OCP.txt
