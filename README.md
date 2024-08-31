@@ -1,4 +1,4 @@
-# perovskite-transistor-circuit-model
+# Perovskite ionic-amplification circuit impedance simulator
 ## Overview
 This program was built as part of a summer project to develop a circuit model for perovskite solar cells when nanoparticles 
 were added between the perovskite/ETL interfaces. It uses a modified ionic-amplification model[1] with an additional RC
@@ -13,7 +13,7 @@ ionic amplification model and the modified nanoparticles model.
 
 ## Installation and use
 Click the green "<>Code" button, download, and run **User_Interface.py**. <br/>
-The following modules may have to be downloaded in advance: numpy, matplotlib, scipy, pandas, tkinter, customtkinter _(This can be done by typing "pip install (module name)" in the command line)_. <br/>
+The following modules may have to be downloaded in advance: numpy, matplotlib, scipy, pandas, tkinter, customtkinter, tabulate _(This can be done by typing "pip install (module name)" in the command line)_. <br/>
 
 ![image](https://github.com/user-attachments/assets/a762b427-384b-481b-ba4b-de4053b17362)
 _Diagram of user interface. Note that the "Run Checker checkbox" only works for the built-in models._
@@ -21,6 +21,14 @@ _Diagram of user interface. Note that the "Run Checker checkbox" only works for 
 ![image](https://github.com/user-attachments/assets/7e0da79e-12c3-4097-947a-92816cdf4de3)
 _Checker UI, move sliders to select data points which corresponds to the time constants_
 
+![image](https://github.com/user-attachments/assets/2f9f2d99-6300-4680-84da-8799f3724b3a)
+_Plotter, sliders are automatically generated and can be used to adjust individual parameters._ <br/>
+_Reset button: resets parameters to initial values_ <br/>
+_Logscale button: toggles logscale sliders, slider values change logarithmically_ <br/>
+_Checkboxes: toggles visible plots, options: magnitude, real impedance, imaginary impdance, capacitance_
+<br/>
+
+The parameters are then outputted into the terminal after adjustments are made
 
 
 ## Data formatting
@@ -64,9 +72,6 @@ _013Pixel5 with 1.03V bias at OCP using single transistor model_
 
 ![image](https://github.com/user-attachments/assets/6a75ce65-d7f5-4aac-88c8-8cdb114aa4d7)
 _008Pixel7 (nanoparticles) with 963mV bias at OCP using nanoparticle model_
-
-![image](https://github.com/user-attachments/assets/2f9f2d99-6300-4680-84da-8799f3724b3a)
-_Same nanoparticle plot displaying other plots: real and imaginary parts; capacitance; magnitude_
 
 
 ## References
