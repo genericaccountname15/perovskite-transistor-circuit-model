@@ -38,6 +38,10 @@ def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bi
     spec.loader.exec_module(module)
     Z = getattr(module, "Z", None)
 
+    #checking if we preloaded fitting support
+    if imp_model_folder == "nanoparticles_model" or imp_model_folder == "single_transistor_model":
+        supported = True
+
     #importing associated initial parameters
     init_paramfilename = imp_model_folder+"\Initial_params.csv"
     nano = False
@@ -63,16 +67,24 @@ def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bi
         biasvoltage = float(input("Please enter bias voltage value (V): "))
 
     #running fit
-    if bias:
-        plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
-                                run_checker=run_checker, fixed_params_indices=[7], fixed_params_values=[biasvoltage])
-        plotter(Z, init_paramfilename, data, plist_fitted)
+    if supported:
+        if bias:
+            plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
+                                    run_checker=run_checker, fixed_params_indices=[7], fixed_params_values=[biasvoltage])
+            plist_output = plotter(Z, init_paramfilename, data, plist_fitted)
+        else:
+            plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
+                                    run_checker=run_checker)
+            plist_output = plotter(Z, init_paramfilename, nobias_data, plist_fitted)
+    
+    #use manually inputted parameters if model is not supported
     else:
-        plist_fitted = fit_leastsq(Z, data, nobias_data, biasvoltage, IVdata, bias=bias, nanoparticles=nano,
-                                run_checker=run_checker)
-        plotter(Z, init_paramfilename, nobias_data, plist_fitted)
+        if bias:
+            plist_output = plotter(Z, init_paramfilename, data)
+        else:
+            plist_output = plotter(Z, init_paramfilename, nobias_data)
 
-    output_params(init_paramfilename, plist_fitted)
+    output_params(init_paramfilename, plist_output)
 
 
 if __name__ == "__main__":

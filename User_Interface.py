@@ -112,6 +112,7 @@ class App(ctk.CTk):
             imp_fitting(self.model.filename(), self.nyquist_bias.filename(), self.nyquist_nobias.filename(), self.IV.filename(), self.OCP.filename(),
                     bias=self.bias, run_checker=self.runchecker)
         
+        #saving filenames to a cache
         df = pd.read_csv("fcache.csv", delimiter=",")
 
         list_to_update = [self.model.filename(), self.nyquist_bias.filename(), self.nyquist_nobias.filename(), self.IV.filename(), self.OCP.filename()]
