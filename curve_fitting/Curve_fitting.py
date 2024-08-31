@@ -9,7 +9,7 @@ Timothy Chew
 import numpy as np
 from scipy.optimize import curve_fit
 
-from Guesser import param_guesser
+from curve_fitting.Guesser import param_guesser
 
 
 def fit_leastsq(Z, bias_data, nobias_data, bias_voltage, IV_data=None, run_checker=False, bias=True, 
@@ -78,7 +78,7 @@ def fit_leastsq(Z, bias_data, nobias_data, bias_voltage, IV_data=None, run_check
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from Plotter import plotter
+    from graphics.Plotter import plotter
     from single_transistor_model.Impedancefunction import Z
 
     nobias_data = np.loadtxt("test_data\\nyquist_dark.txt", skiprows=1)

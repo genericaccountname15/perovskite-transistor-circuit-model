@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, CheckButtons
-from Axes_generator import gen_axes
+from graphics.Axes_generator import gen_axes
 
 #get phase of complex number
 def arg(z):

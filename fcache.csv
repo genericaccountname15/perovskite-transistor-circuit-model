@@ -1,5 +1,5 @@
 prompt,filename
-impedance model,single_transistor_model
+impedance model,builtin_models\single_transistor_model
 impedance data file,test_data\nyquist.txt
 0V impedance data file,test_data\nyquist_dark.txt
 IV data file,test_data\Pixel5ControlLightForwardsweep\CVafter.txt

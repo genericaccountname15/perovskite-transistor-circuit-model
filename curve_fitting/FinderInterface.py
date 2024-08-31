@@ -7,10 +7,10 @@ Timothy Chew
 
 import numpy as np
 import matplotlib.pyplot as plt
-import Finder as find
+import curve_fitting.Finder as find
 
 from matplotlib.widgets import Slider
-from Axes_generator import gen_axes
+from graphics.Axes_generator import gen_axes
 
 def Interface(bias_data, nobias_data=None, IV_data=None, nanoparticle=False, run_checker=True):
     """

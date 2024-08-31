@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 import importlib.util
 
-from Plotter import plotter
-from Curve_fitting import fit_leastsq
-from output_plist import output_params
+from graphics.Plotter import plotter
+from curve_fitting.Curve_fitting import fit_leastsq
+from graphics.output_plist import output_params
 
 def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bias, run_checker):
     """
@@ -39,13 +39,15 @@ def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bi
     Z = getattr(module, "Z", None)
 
     #checking if we preloaded fitting support
-    if imp_model_folder == "nanoparticles_model" or imp_model_folder == "single_transistor_model":
+    if imp_model_folder == "builtin_models\\nanoparticles_model" or imp_model_folder == "builtin_models\single_transistor_model":
         supported = True
+    else:
+        supported = False
 
     #importing associated initial parameters
     init_paramfilename = imp_model_folder+"\Initial_params.csv"
     nano = False
-    if imp_model_folder == "nanoparticles_model":
+    if imp_model_folder == "builtin_models\\nanoparticles_model":
         nano = True
 
     #loading data
@@ -79,6 +81,7 @@ def imp_fitting(imp_model_folder, datafile, nobias_datafile, IVfile, OCPfile, bi
     
     #use manually inputted parameters if model is not supported
     else:
+        print("Unsupported model, using manually inputed parameters")
         if bias:
             plist_output = plotter(Z, init_paramfilename, data)
         else:

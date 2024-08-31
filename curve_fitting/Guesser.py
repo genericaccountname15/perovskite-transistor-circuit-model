@@ -11,8 +11,8 @@ import cmath
 import scipy.constants as spc
 import scipy.special as sps
 
-import Finder as find
-from FinderInterface import Interface
+import curve_fitting.Finder as find
+from curve_fitting.FinderInterface import Interface
 
 def param_guesser(bias_data, nobias_data, IV_data, bias_voltage, kbt=4.1302114835e-21,
                    Js=2.31e-16, bias=True, nanoparticles=False, run_checker=True):
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     plist = param_guesser(bias_data, nobias_data, IV_data, bias_voltage, run_checker=False, bias=False, nanoparticles=True)
 
     from nanoparticles_model.Impedancefunction import Z
-    from Plotter import plotter
+    from graphics.Plotter import plotter
     plotter(Z, "nanoparticles_model\Initial_params.csv", nobias_data, plist)
 
     
